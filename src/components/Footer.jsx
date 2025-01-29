@@ -27,26 +27,26 @@ const Footer = () => {
             Come join us and become part of our E-Kicker family!
             </p>
             <div className="flex space-x-4">
-              <a 
+              {/* <a 
                 href="#" 
                 className="text-yellow-300 hover:text-yellow-400 transition-colors"
               >
                 <Facebook className="w-6 h-6" />
-              </a>
-              <a 
+              </a> */}
+              {/* <a 
                 href="#" 
                 className="text-yellow-300 hover:text-yellow-400 transition-colors"
               >
                 <Twitter className="w-6 h-6" />
-              </a>
+              </a> */}
               <a 
-                href="https://www.instagram.com/e_kicker_/" 
+                href="https://www.instagram.com/ekicker_?igsh=bm1taGFuazIwbjEx" 
                 className="text-yellow-300 hover:text-yellow-400 transition-colors"
               >
                 <Instagram className="w-6 h-6" />
               </a>
               <a 
-                href="#" 
+                href="https://www.linkedin.com/company/105650950/admin/dashboard/" 
                 className="text-yellow-300 hover:text-yellow-400 transition-colors"
               >
                 <Linkedin className="w-6 h-6" />
