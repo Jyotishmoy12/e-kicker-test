@@ -17,7 +17,6 @@ const Header = () => {
   const auth = getAuth();
   const db = getFirestore();
 
-  // Routes where search bar is visible
   const searchVisibleRoutes = ['/', '/products'];
 
   const toggleMenu = () => {
@@ -25,7 +24,6 @@ const Header = () => {
   };
 
   useEffect(() => {
-    // Monitor authentication state
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         setUserEmail(user.email);
@@ -109,7 +107,6 @@ const Header = () => {
   const navItems = [
     { to: '/', label: 'Home' },
     { to: '/r&d', label: 'Research' },
-    // { to: '/userprofile', label: 'User Profile' },
     { to: '/account', label: 'Account' },
     ...(userEmail === 'admfouekicker@gmail.com' ? [{ to: '/admin', label: 'Admin' }] : []),
   ];
@@ -127,53 +124,55 @@ const Header = () => {
   };
 
   return (
-    <header className="bg-blue-50 shadow-md relative">
+    <header className="bg-gradient-to-r from-blue-100 to-blue-200 shadow-xl sticky top-0 z-50">
       <div className="container mx-auto max-w-screen-xl flex items-center justify-between py-4 px-6">
-        {/* Logo */}
+        {/* Logo with enhanced hover effect */}
         <div className="flex items-center">
           <img
-            className="h-20 w-40 mr-6 hover:scale-105 transition-transform duration-300"
+            className="h-20 w-40 mr-6 rounded-lg"
             src="/e-kickerhd.png"
             alt="logo"
           />
         </div>
 
-        {/* Search Bar */}
+        {/* Search Bar with enhanced styling */}
         {searchVisibleRoutes.includes(location.pathname) && (
           <div className="flex-grow max-w-md mx-4 relative" ref={searchRef}>
-            <div className="relative">
+            <div className="relative group">
               <input
                 type="text"
                 placeholder="Search products..."
                 value={searchTerm}
                 onChange={handleInputChange}
                 onFocus={() => setShowSearchResults(true)}
-                className="w-full pl-10 pr-10 py-2 border border-blue-300 rounded-full 
-                           focus:outline-none focus:ring-2 focus:ring-blue-500 
-                           transition-all duration-300 text-sm"
+                className="w-full pl-10 pr-10 py-3 border-2 border-blue-300 rounded-full 
+                           focus:outline-none focus:ring-4 focus:ring-blue-500 focus:border-transparent
+                           bg-white/70 backdrop-blur-sm shadow-md
+                           transition-all duration-300 text-sm 
+                           group-hover:shadow-lg"
               />
               <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
-                <Search className="text-blue-500 w-5 h-5" />
+                <Search className="text-blue-500 w-6 h-6 group-hover:scale-110 transition-transform" />
               </div>
               {searchTerm && (
                 <button
                   onClick={clearSearch}
                   className="absolute right-3 top-1/2 transform -translate-y-1/2"
                 >
-                  <X className="text-gray-500 w-5 h-5 hover:text-red-500" />
+                  <X className="text-gray-500 w-6 h-6 hover:text-red-500 hover:scale-125 transition-all" />
                 </button>
               )}
             </div>
 
             {showSearchResults && searchResults.length > 0 && (
-              <div className="absolute z-50 w-full mt-2 bg-white border border-blue-200 rounded-lg shadow-xl max-h-[300px] overflow-y-auto">
-                <div className="sticky top-0 bg-blue-50 p-2 flex justify-between items-center border-b border-blue-200">
-                  <span className="text-sm font-medium text-blue-800">Search Results</span>
+              <div className="absolute z-50 w-full mt-2 bg-white border-2 border-blue-200 rounded-xl shadow-2xl max-h-[300px] overflow-y-auto animate-fade-in">
+                <div className="sticky top-0 bg-blue-100 p-3 flex justify-between items-center border-b border-blue-200 rounded-t-xl">
+                  <span className="text-sm font-bold text-blue-900">Search Results</span>
                   <button 
                     onClick={() => setShowSearchResults(false)}
-                    className="p-1 hover:bg-blue-100 rounded-full"
+                    className="p-1 hover:bg-blue-200 rounded-full transition-colors"
                   >
-                    <X className="w-4 h-4 text-blue-800" />
+                    <X className="w-5 h-5 text-blue-800" />
                   </button>
                 </div>
                 {searchResults.map((product) => (
@@ -181,17 +180,18 @@ const Header = () => {
                     to={`/productDetails/${product.id}`}
                     key={product.id}
                     onClick={() => handleResultClick(product.id)}
-                    className="flex items-center p-3 hover:bg-blue-50 
-                             transition-colors duration-200 border-b last:border-b-0"
+                    className="flex items-center p-4 hover:bg-blue-50 
+                               transition-colors duration-200 border-b last:border-b-0 
+                               hover:shadow-inner group"
                   >
                     <img
                       src={product.image || 'default-image.png'}
                       alt={product.name}
-                      className="w-12 h-12 object-cover rounded mr-4"
+                      className="w-16 h-16 object-cover rounded-lg mr-4 shadow-md group-hover:scale-105 transition-transform"
                     />
                     <div>
-                      <h3 className="font-semibold text-blue-900 text-sm">{product.name}</h3>
-                      <p className="text-xs text-gray-500">${product.price.toFixed(2)}</p>
+                      <h3 className="font-bold text-blue-900 text-base group-hover:text-blue-700">{product.name}</h3>
+                      <p className="text-sm text-gray-600 font-semibold">${product.price.toFixed(2)}</p>
                     </div>
                   </Link>
                 ))}
@@ -200,45 +200,46 @@ const Header = () => {
           </div>
         )}
 
-        {/* Mobile Menu Button */}
+        {/* Mobile Menu Button with enhanced styling */}
         <div className="md:hidden">
           <button 
             onClick={toggleMenu} 
-            className="text-blue-800 focus:outline-none"
+            className="text-blue-800 focus:outline-none bg-blue-100 p-2 rounded-full 
+                       hover:bg-blue-200 transition-colors shadow-md"
           >
-            {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+            {isMenuOpen ? <X size={24} className="animate-rotate-in" /> : <Menu size={24} className="animate-fade-in" />}
           </button>
         </div>
 
-        {/* Desktop Navigation */}
+        {/* Desktop Navigation with enhanced styling */}
         <nav className="hidden md:block">
           <ul className="flex space-x-6 items-center">
             {navItems.map(({ to, label }) => (
               <li key={to}>
                 <Link 
                   to={to} 
-                  className="text-blue-800 font-semibold hover:text-yellow-500 
-                             transition-colors duration-300 
-                             relative pb-1
-                             after:content-[''] after:absolute after:bottom-0 after:left-0 
-                             after:w-0 after:h-[2px] after:bg-yellow-500 
-                             after:transition-all after:duration-300
-                             hover:after:w-full"
+                  className="text-blue-900 font-bold tracking-wide 
+                             hover:text-blue-600 transition-colors duration-300 
+                             relative pb-1 group"
                 >
                   {label}
+                  <span className="absolute bottom-0 left-0 w-0 h-1 bg-blue-600 
+                                   group-hover:w-full transition-all duration-300"></span>
                 </Link>
               </li>
             ))}
             <li>
               <Link 
                 to="/cart" 
-                className="bg-blue-600 text-white px-3 py-1.5 rounded-full 
-                           hover:bg-blue-700 transition-colors flex items-center text-sm relative"
+                className="bg-blue-600 text-white px-4 py-2 rounded-full 
+                           hover:bg-blue-700 transition-colors flex items-center 
+                           text-sm relative shadow-md hover:shadow-lg group"
               >
-                <ShoppingCart className="mr-1 w-4 h-4" />
+                <ShoppingCart className="mr-2 w-5 h-5 group-hover:animate-bounce" />
                 Cart
                 {cartCount > 0 && (
-                  <span className="absolute top-0 right-0 bg-red-600 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center">
+                  <span className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 
+                                   text-xs flex items-center justify-center animate-pulse">
                     {cartCount}
                   </span>
                 )}
@@ -248,7 +249,9 @@ const Header = () => {
               <li>
                 <button 
                   onClick={handleLogout}
-                  className="bg-red-600 text-white px-3 py-1.5 rounded-full hover:bg-red-700"
+                  className="bg-red-500 text-white px-4 py-2 rounded-full 
+                             hover:bg-red-600 transition-colors shadow-md 
+                             hover:shadow-lg active:scale-95"
                 >
                   Logout
                 </button>
@@ -257,24 +260,22 @@ const Header = () => {
           </ul>
         </nav>
 
-        {/* Mobile Navigation Menu */}
+        {/* Mobile Navigation Menu with enhanced styling */}
         {isMenuOpen && (
-          <div className="absolute top-full left-0 w-full bg-blue-50 md:hidden shadow-lg z-20">
-            <ul className="flex flex-col items-center py-4 space-y-4">
+          <div className="absolute top-full left-0 w-full bg-gradient-to-br from-blue-100 to-blue-200 
+                          md:hidden shadow-2xl z-20 animate-slide-in">
+            <ul className="flex flex-col items-center py-6 space-y-6">
               {navItems.map(({ to, label }) => (
                 <li key={to} className="w-full text-center">
                   <Link 
                     to={to} 
                     onClick={toggleMenu}
-                    className="text-blue-800 font-semibold hover:text-yellow-500 
-                               transition-colors duration-300 
-                               relative pb-1 block
-                               after:content-[''] after:absolute after:bottom-0 after:left-0 
-                               after:w-0 after:h-[2px] after:bg-yellow-500 
-                               after:transition-all after:duration-300
-                               hover:after:w-full"
+                    className="text-blue-900 font-bold tracking-wide block py-2 
+                               hover:bg-blue-200 transition-colors group relative"
                   >
                     {label}
+                    <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-1 
+                                     bg-blue-600 group-hover:w-1/2 transition-all duration-300"></span>
                   </Link>
                 </li>
               ))}
@@ -282,13 +283,16 @@ const Header = () => {
                 <Link 
                   to="/cart" 
                   onClick={toggleMenu}
-                  className="bg-blue-600 text-white px-3 py-1.5 rounded-full 
-                             hover:bg-blue-700 transition-colors flex items-center text-sm relative"
+                  className="bg-blue-600 text-white px-6 py-3 rounded-full 
+                             hover:bg-blue-700 transition-colors flex items-center 
+                             text-base relative shadow-md group"
                 >
-                  <ShoppingCart className="mr-1 w-4 h-4" />
+                  <ShoppingCart className="mr-3 w-6 h-6 group-hover:animate-bounce" />
                   Cart
                   {cartCount > 0 && (
-                    <span className="absolute top-0 right-0 bg-red-600 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center">
+                    <span className="absolute -top-3 -right-3 bg-red-500 text-white 
+                                     rounded-full w-7 h-7 text-xs flex items-center 
+                                     justify-center animate-pulse">
                       {cartCount}
                     </span>
                   )}
@@ -298,7 +302,9 @@ const Header = () => {
                 <li>
                   <button 
                     onClick={handleLogout}
-                    className="bg-red-600 text-white px-3 py-1.5 rounded-full hover:bg-red-700"
+                    className="bg-red-500 text-white px-6 py-3 rounded-full 
+                               hover:bg-red-600 transition-colors shadow-md 
+                               active:scale-95"
                   >
                     Logout
                   </button>
@@ -312,4 +318,4 @@ const Header = () => {
   );
 };
 
-export default Header;
+export default Header; 

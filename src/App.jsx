@@ -23,11 +23,14 @@ import TermsOfUse from './Pages/TermsOfUse';
 import PrivacyPolicy from './Pages/PrivacyPolicy';
 import Repairing from './Pages/Repairing';
 import ProjectPrototyping from './Pages/ProjectPrototyping';
+import ProductsPage from './Pages/ProductsPage';
+import ScrollToTop from './components/ScrollToTop';
 
 const App = () => {
   return (
     <>
     <Router>
+      <ScrollToTop/>
     <ToastContainer 
         position="top-right" 
         autoClose={5000} 
@@ -59,6 +62,7 @@ const App = () => {
             <Route path="/privacypolicy" element={<PrivacyPolicy/>}/>
             <Route path="/repairing" element={<Repairing/>}/>
             <Route path ="/project-prototyping" element={<ProjectPrototyping/>}/>
+            <Route path ="/products" element={<ProductsPage/>}/>
             {/* <Route path="/edit-product/:id" component={EditProduct} /> */}
             <Route path="/admin" element={
           <PrivateRoute adminOnly={true}>

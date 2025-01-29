@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { Wrench, Lightbulb, Beaker } from 'lucide-react';
+import { Wrench, Lightbulb, Beaker, ChevronLeft, ChevronRight } from 'lucide-react';
 
 const ImageCarousel = () => {
   const images = [
@@ -14,22 +14,25 @@ const ImageCarousel = () => {
 
   const services = [
     {
-      title: "Repairing",
-      description: "Expert repair services for your equipment",
-      icon: <Wrench className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6" />,
-      link: "/repairing"
+      title: "Precision Repair",
+      description: "Expert diagnostics and repair for technical equipment",
+      icon: <Wrench className="w-6 h-6 md:w-8 md:h-8 text-blue-600" />,
+      link: "/repairing",
+      color: "bg-blue-50"
     },
     {
-      title: "Project Prototyping",
-      description: "Turn your ideas into working prototypes",
-      icon: <Lightbulb className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6" />,
-      link: "/project-prototyping"
+      title: "Innovative Prototyping",
+      description: "Transform concepts into functional prototypes",
+      icon: <Lightbulb className="w-6 h-6 md:w-8 md:h-8 text-green-600" />,
+      link: "/project-prototyping",
+      color: "bg-green-50"
     },
     {
-      title: "R&D Projects",
-      description: "Research and development solutions",
-      icon: <Beaker className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6" />,
-      link: "/r&d"
+      title: "Advanced R&D",
+      description: "Cutting-edge research and development solutions",
+      icon: <Beaker className="w-6 h-6 md:w-8 md:h-8 text-purple-600" />,
+      link: "/r&d",
+      color: "bg-purple-50"
     }
   ];
 
@@ -40,33 +43,46 @@ const ImageCarousel = () => {
       setCurrentIndex((prevIndex) => 
         (prevIndex + 1) % images.length
       );
-    }, 3000);
+    }, 5000);
 
     return () => clearInterval(slideInterval);
   }, [images.length]);
 
+  const handlePrev = () => {
+    setCurrentIndex((prevIndex) => 
+      (prevIndex - 1 + images.length) % images.length
+    );
+  };
+
+  const handleNext = () => {
+    setCurrentIndex((prevIndex) => 
+      (prevIndex + 1) % images.length
+    );
+  };
+
   return (
-    <div className="flex flex-row w-full min-h-[50vh] sm:min-h-[60vh] lg:min-h-[70vh] gap-2 sm:gap-3 lg:gap-4 p-2 sm:p-3 lg:p-4">
+    <div className="flex flex-col lg:flex-row w-full bg-gray-50">
       {/* Services Section */}
-      <div className="w-1/4 space-y-2 sm:space-y-3 lg:space-y-4">
-        <h2 className="text-lg sm:text-xl lg:text-2xl font-bold mb-2 sm:mb-4 lg:mb-6">Our Services</h2>
-        <div className="space-y-2 sm:space-y-3 lg:space-y-4">
+      <div className="w-full lg:w-1/3 bg-white shadow-md flex flex-col min-h-[400px] lg:h-[500px] overflow-hidden order-2 lg:order-1">
+        <h2 className="text-xl md:text-2xl font-bold mb-2 md:mb-2 text-gray-800 px-4 md:px-6 pt-4 md:pt-6">Our Services</h2>
+        <div className="flex-1 flex flex-col justify-between px-4 md:px-6 pb-4 md:pb-6 space-y-3 md:space-y-0">
           {services.map((service, index) => (
             <Link 
               key={index}
               to={service.link}
-              className="block p-2 sm:p-3 lg:p-4 rounded-lg bg-white shadow-md hover:shadow-lg 
-                transition-all duration-300 transform hover:-translate-y-1"
+              className={`p-4 md:p-8 rounded-xl transition-all duration-300 
+                hover:shadow-xl hover:-translate-y-1 ${service.color}
+                transform hover:scale-105`}
             >
-              <div className="flex items-center gap-2 lg:gap-3">
-                <div className="text-blue-600 flex-shrink-0">
+              <div className="flex items-center space-x-3 md:space-x-6">
+                <div className="flex-shrink-0 bg-white p-2 md:p-4 rounded-lg shadow-sm">
                   {service.icon}
                 </div>
-                <div className="min-w-0">
-                  <h3 className="font-semibold text-xs sm:text-sm lg:text-lg truncate">
+                <div className="flex-1">
+                  <h3 className="text-lg md:text-xl font-semibold text-gray-800 mb-1 md:mb-2">
                     {service.title}
                   </h3>
-                  <p className="text-gray-600 text-xs lg:text-sm line-clamp-2">
+                  <p className="text-sm md:text-base text-gray-600">
                     {service.description}
                   </p>
                 </div>
@@ -77,7 +93,7 @@ const ImageCarousel = () => {
       </div>
 
       {/* Carousel Section */}
-      <div className="relative w-3/4 h-[40vh] sm:h-[50vh] lg:h-[70vh] max-h-[600px] overflow-hidden rounded-lg">
+      <div className="relative w-full lg:w-2/3 h-[300px] md:h-[400px] lg:h-[500px] overflow-hidden order-1 lg:order-2">
         <AnimatePresence>
           <motion.div 
             key={currentIndex}
@@ -107,14 +123,30 @@ const ImageCarousel = () => {
           </motion.div>
         </AnimatePresence>
 
+        {/* Navigation Controls */}
+        <div className="absolute inset-0 flex items-center justify-between px-4">
+          <button 
+            onClick={handlePrev}
+            className="bg-black/30 hover:bg-black/50 text-white p-2 rounded-full transition-all"
+          >
+            <ChevronLeft className="w-6 h-6" />
+          </button>
+          <button 
+            onClick={handleNext}
+            className="bg-black/30 hover:bg-black/50 text-white p-2 rounded-full transition-all"
+          >
+            <ChevronRight className="w-6 h-6" />
+          </button>
+        </div>
+
         {/* Slide Indicators */}
-        <div className="absolute bottom-2 sm:bottom-4 lg:bottom-10 left-1/2 transform -translate-x-1/2 flex space-x-1 sm:space-x-1.5 lg:space-x-2">
+        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
           {images.map((_, index) => (
             <button
               key={index}
               onClick={() => setCurrentIndex(index)}
               className={`
-                w-1.5 h-1.5 sm:w-2 sm:h-2 lg:w-3 lg:h-3 rounded-full transition-all duration-300
+                w-2 h-2 md:w-3 md:h-3 rounded-full transition-all duration-300
                 ${currentIndex === index 
                   ? 'bg-white scale-125 shadow-lg' 
                   : 'bg-white/50 hover:bg-white/75'}
@@ -122,28 +154,6 @@ const ImageCarousel = () => {
             />
           ))}
         </div>
-
-        {/* Navigation Arrows */}
-        <button 
-          onClick={() => setCurrentIndex((prevIndex) => 
-            (prevIndex - 1 + images.length) % images.length
-          )}
-          className="absolute left-1 sm:left-2 lg:left-5 top-1/2 transform -translate-y-1/2 
-            bg-black/30 text-white p-1 sm:p-1.5 lg:p-2 rounded-full hover:bg-black/50 
-            transition-all duration-300 text-xs sm:text-sm lg:text-base"
-        >
-          ←
-        </button>
-        <button 
-          onClick={() => setCurrentIndex((prevIndex) => 
-            (prevIndex + 1) % images.length
-          )}
-          className="absolute right-1 sm:right-2 lg:right-5 top-1/2 transform -translate-y-1/2 
-            bg-black/30 text-white p-1 sm:p-1.5 lg:p-2 rounded-full hover:bg-black/50 
-            transition-all duration-300 text-xs sm:text-sm lg:text-base"
-        >
-          →
-        </button>
       </div>
     </div>
   );
