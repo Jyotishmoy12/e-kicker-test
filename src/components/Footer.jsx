@@ -125,7 +125,7 @@ const Footer = () => {
               <div className="flex items-center">
                 <MapPin className="w-5 h-5 mr-3 text-yellow-300" />
                 <span className="text-blue-200 text-sm">
-                  Tezpur University, Nilachal Mens Hostel
+                  Morigaon,Assam
                 </span>
               </div>
             </div>
