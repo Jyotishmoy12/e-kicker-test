@@ -5,11 +5,11 @@ import { Wrench, Lightbulb, Beaker, ChevronLeft, ChevronRight } from 'lucide-rea
 
 const ImageCarousel = () => {
   const images = [
-    "arduino.jpg",
-    "arduino.jpg",
-    "arduino.jpg",
-    "arduino.jpg",
-    "arduino.jpg"
+    "image1.jpg",
+    "image1.jpg",
+    "image1.jpg",
+    "image1.jpg",
+    "image1.jpg"
   ];
 
   const services = [
