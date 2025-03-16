@@ -11,7 +11,9 @@ const Header = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [showSearchResults, setShowSearchResults] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
   const searchRef = useRef(null);
+  const searchDebounceRef = useRef(null);
 
   const location = useLocation();
   const auth = getAuth();
@@ -45,53 +47,124 @@ const Header = () => {
     return () => unsubscribe();
   }, [auth, db]);
 
+  // Process search term for better matching
+  const processSearchTerm = (term) => {
+    // Convert to lowercase and remove extra spaces
+    const processed = term.toLowerCase().trim();
+    // Split into tokens (words, numbers, etc.)
+    return {
+      fullTerm: processed,
+      tokens: processed.split(/\s+/),
+    };
+  };
+
+  // Score a product based on how well it matches the search term
+  const scoreProduct = (product, searchInfo) => {
+    const { fullTerm, tokens } = searchInfo;
+    const productName = product.name?.toLowerCase() || '';
+    const productCategory = product.category?.toLowerCase() || '';
+    const productDescription = product.description?.toLowerCase() || '';
+    const productSku = product.sku?.toLowerCase() || '';
+    const productModel = product.model?.toLowerCase() || '';
+    const productKeywords = product.keywords?.map(k => k.toLowerCase()) || [];
+    
+    let score = 0;
+    
+    // Exact match gives highest score
+    if (productName === fullTerm) score += 100;
+    if (productCategory === fullTerm) score += 50;
+    
+    // Check if product name starts with search term
+    if (productName.startsWith(fullTerm)) score += 75;
+    
+    // Check if any field contains the full search term
+    if (productName.includes(fullTerm)) score += 60;
+    if (productCategory.includes(fullTerm)) score += 40;
+    if (productDescription.includes(fullTerm)) score += 30;
+    if (productSku.includes(fullTerm)) score += 45;
+    if (productModel.includes(fullTerm)) score += 45;
+    
+    // Check for token matches in product name
+    let tokenMatches = 0;
+    tokens.forEach(token => {
+      if (token.length < 2) return; // Skip very short tokens
+      
+      if (productName.includes(token)) tokenMatches++;
+      if (productCategory.includes(token)) tokenMatches += 0.5;
+      if (productDescription.includes(token)) tokenMatches += 0.3;
+      if (productSku.includes(token)) tokenMatches += 0.7;
+      if (productModel.includes(token)) tokenMatches += 0.7;
+      
+      // Check if keywords match
+      if (productKeywords.some(keyword => keyword.includes(token))) {
+        tokenMatches += 0.8;
+      }
+    });
+    
+    // Add token match score - higher % of matches = higher score
+    if (tokens.length > 0) {
+      score += (tokenMatches / tokens.length) * 50;
+    }
+    
+    return score;
+  };
+
   const handleSearch = async (term) => {
     if (term.length < 2) {
       setSearchResults([]);
+      setIsSearching(false);
       return;
     }
 
+    setIsSearching(true);
+    
     try {
+      const searchInfo = processSearchTerm(term);
       const productsRef = collection(db, 'products');
-      const nameQuery = query(
-        productsRef,
-        where('name', '>=', term.toLowerCase()),
-        where('name', '<=', term.toLowerCase() + '\uf8ff')
-      );
-      const categoryQuery = query(
-        productsRef,
-        where('category', '>=', term.toLowerCase()),
-        where('category', '<=', term.toLowerCase() + '\uf8ff')
-      );
-
-      const [nameSnapshot, categorySnapshot] = await Promise.all([
-        getDocs(nameQuery),
-        getDocs(categoryQuery),
-      ]);
-
-      const results = new Map();
-
-      nameSnapshot.forEach((doc) => {
-        results.set(doc.id, { id: doc.id, ...doc.data() });
+      
+      // Get all products for advanced filtering
+      // In a real production app, you might want to limit this somehow
+      // or implement server-side search for larger catalogs
+      const snapshot = await getDocs(productsRef);
+      
+      const allProducts = [];
+      snapshot.forEach((doc) => {
+        allProducts.push({ id: doc.id, ...doc.data() });
       });
-
-      categorySnapshot.forEach((doc) => {
-        results.set(doc.id, { id: doc.id, ...doc.data() });
-      });
-
-      const searchResults = Array.from(results.values()).slice(0, 5);
-      setSearchResults(searchResults);
-      setShowSearchResults(true);
+      
+      // Score and filter products
+      const scoredProducts = allProducts
+        .map(product => ({
+          ...product,
+          score: scoreProduct(product, searchInfo)
+        }))
+        .filter(product => product.score > 0)  // Only keep products with a match
+        .sort((a, b) => b.score - a.score)     // Sort by score descending
+        .slice(0, 8);                          // Limit to top 8 results
+      
+      setSearchResults(scoredProducts);
+      setShowSearchResults(scoredProducts.length > 0);
     } catch (error) {
       console.error('Search error:', error);
       setSearchResults([]);
+    } finally {
+      setIsSearching(false);
     }
   };
 
   const handleInputChange = (e) => {
     const term = e.target.value;
     setSearchTerm(term);
-    handleSearch(term);
+    
+    // Clear previous timeout
+    if (searchDebounceRef.current) {
+      clearTimeout(searchDebounceRef.current);
+    }
+    
+    // Set new timeout to debounce search
+    searchDebounceRef.current = setTimeout(() => {
+      handleSearch(term);
+    }, 300); // 300ms debounce
   };
 
   const clearSearch = () => {
@@ -102,7 +175,22 @@ const Header = () => {
 
   const handleResultClick = (productId) => {
     // Only close if user explicitly chooses to
+    clearSearch();
   };
+
+  // Click outside handler
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (searchRef.current && !searchRef.current.contains(event.target)) {
+        setShowSearchResults(false);
+      }
+    };
+    
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const navItems = [
     { to: '/', label: 'Home' },
@@ -123,6 +211,29 @@ const Header = () => {
       });
   };
 
+  // Highlight matching text in search results
+  const highlightMatch = (text, searchTerm) => {
+    if (!text || !searchTerm) return text;
+    
+    const lowerText = text.toLowerCase();
+    const lowerSearchTerm = searchTerm.toLowerCase();
+    
+    if (!lowerText.includes(lowerSearchTerm)) return text;
+    
+    const startIndex = lowerText.indexOf(lowerSearchTerm);
+    const endIndex = startIndex + lowerSearchTerm.length;
+    
+    return (
+      <>
+        {text.substring(0, startIndex)}
+        <span className="bg-yellow-200 text-blue-900 font-bold px-0.5 rounded">
+          {text.substring(startIndex, endIndex)}
+        </span>
+        {text.substring(endIndex)}
+      </>
+    );
+  };
+
   return (
     <header className="bg-gradient-to-r from-blue-100 to-blue-200 shadow-xl sticky top-0 z-50">
       <div className="container mx-auto max-w-screen-xl flex items-center justify-between py-4 px-6">
@@ -141,10 +252,10 @@ const Header = () => {
             <div className="relative group">
               <input
                 type="text"
-                placeholder="Search products..."
+                placeholder="Search products, models, or part numbers..."
                 value={searchTerm}
                 onChange={handleInputChange}
-                onFocus={() => setShowSearchResults(true)}
+                onFocus={() => searchTerm && setShowSearchResults(true)}
                 className="w-full pl-10 pr-10 py-3 border-2 border-blue-300 rounded-full 
                            focus:outline-none focus:ring-4 focus:ring-blue-500 focus:border-transparent
                            bg-white/70 backdrop-blur-sm shadow-md
@@ -152,7 +263,11 @@ const Header = () => {
                            group-hover:shadow-lg"
               />
               <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
-                <Search className="text-blue-500 w-6 h-6 group-hover:scale-110 transition-transform" />
+                {isSearching ? (
+                  <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                ) : (
+                  <Search className="text-blue-500 w-6 h-6 group-hover:scale-110 transition-transform" />
+                )}
               </div>
               {searchTerm && (
                 <button
@@ -165,7 +280,7 @@ const Header = () => {
             </div>
 
             {showSearchResults && searchResults.length > 0 && (
-              <div className="absolute z-50 w-full mt-2 bg-white border-2 border-blue-200 rounded-xl shadow-2xl max-h-[300px] overflow-y-auto animate-fade-in">
+              <div className="absolute z-50 w-full mt-2 bg-white border-2 border-blue-200 rounded-xl shadow-2xl max-h-[400px] overflow-y-auto animate-fade-in">
                 <div className="sticky top-0 bg-blue-100 p-3 flex justify-between items-center border-b border-blue-200 rounded-t-xl">
                   <span className="text-sm font-bold text-blue-900">Search Results</span>
                   <button 
@@ -189,9 +304,17 @@ const Header = () => {
                       alt={product.name}
                       className="w-16 h-16 object-cover rounded-lg mr-4 shadow-md group-hover:scale-105 transition-transform"
                     />
-                    <div>
-                      <h3 className="font-bold text-blue-900 text-base group-hover:text-blue-700">{product.name}</h3>
-                      <p className="text-sm text-gray-600 font-semibold">${product.price.toFixed(2)}</p>
+                    <div className="flex-grow">
+                      <h3 className="font-bold text-blue-900 text-base group-hover:text-blue-700">
+                        {highlightMatch(product.name, searchTerm)}
+                      </h3>
+                      <p className="text-sm text-gray-600 font-semibold">${product.price?.toFixed(2) || '0.00'}</p>
+                      {product.model && (
+                        <p className="text-xs text-gray-500">Model: {highlightMatch(product.model, searchTerm)}</p>
+                      )}
+                      {product.category && (
+                        <p className="text-xs text-gray-500">Category: {highlightMatch(product.category, searchTerm)}</p>
+                      )}
                     </div>
                   </Link>
                 ))}
@@ -318,4 +441,4 @@ const Header = () => {
   );
 };
 
-export default Header; 
+export default Header;
