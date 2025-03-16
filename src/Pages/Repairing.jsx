@@ -14,6 +14,8 @@ import {
   Plug
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import Header from '../components/Navbar';
+import Footer from '../components/Footer';
 
 const RepairPage = () => {
  
@@ -67,6 +69,8 @@ const RepairPage = () => {
   ];
 
   return (
+    <>
+    <Header/>
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
       <header className="relative bg-gradient-to-r from-blue-600 to-blue-800 text-white py-20">
@@ -157,6 +161,8 @@ const RepairPage = () => {
         </div>
       </section>
     </div>
+    <Footer/>
+    </>
   );
 };
 

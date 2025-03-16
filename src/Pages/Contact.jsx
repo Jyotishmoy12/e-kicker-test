@@ -1,11 +1,8 @@
 import React, { useState } from 'react';
 import { Mail, Phone, MapPin, Send } from 'lucide-react';
-import { initializeApp } from 'firebase/app';
-import { getFirestore, collection, addDoc } from 'firebase/firestore';
-import { getFunctions, httpsCallable } from 'firebase/functions';
-import {db} from '../../firebase';
 import emailjs from "@emailjs/browser"
-
+import Header from '../components/Navbar';
+import Footer from '../components/Footer';
 const Contact = () => {
   const [applicationData, setApplicationData] = useState({
     fullName: '',  // Changed name to fullName
@@ -75,6 +72,8 @@ const Contact = () => {
   };
 
   return (
+    <>
+    <Header/>
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
       <div className="bg-blue-600 text-white py-20 px-4">
@@ -242,6 +241,8 @@ const Contact = () => {
         </div>
       </div>
     </div>
+    <Footer/>
+    </>
   );
 };
 

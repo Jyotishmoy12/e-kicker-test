@@ -300,11 +300,14 @@ const ProductComponent = ({
                 className="bg-white border border-neutral-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow group"
               >
                 <div className="relative">
-                  <img 
-                    src={product.image || 'vite.svg'} 
-                    alt={product.name} 
-                    className="w-full h-48 object-cover group-hover:opacity-90 transition-opacity"
-                  />
+                  {/* For Mobile - Clickable image to go to product details */}
+                  <Link to={`/productDetails/${product.id}`} className="block">
+                    <img 
+                      src={product.image || 'vite.svg'} 
+                      alt={product.name} 
+                      className="w-full h-48 object-cover group-hover:opacity-90 transition-opacity"
+                    />
+                  </Link>
                   <button 
                     onClick={() => handleAddToWishlist(product)} 
                     className={`absolute top-3 right-3 p-2 rounded-full ${
@@ -341,6 +344,14 @@ const ProductComponent = ({
                   </div>
 
                   <div className="flex space-x-2">
+                    {/* Show "Details" button on larger screens only */}
+                    <Link 
+                      to={`/productDetails/${product.id}`} 
+                      className="hidden md:inline-block py-2 px-4 rounded-md text-white bg-blue-800 hover:bg-blue-700 transition-colors"
+                    >
+                      Details
+                    </Link>
+
                     <button 
                       onClick={() => handleAddToCart(product)} 
                       className={`flex-1 py-2 rounded-md text-white transition-colors ${
@@ -352,12 +363,6 @@ const ProductComponent = ({
                     >
                       {product.inStock ? 'Add to Cart' : 'Out of Stock'}
                     </button>
-                    <Link 
-                      to={`/productDetails/${product.id}`} 
-                      className="flex-1 py-2 rounded-md border border-blue-800 text-blue-800 text-center hover:bg-neutral-100 transition-colors"
-                    >
-                      Details
-                    </Link>
                   </div>
                 </div>
               </div>

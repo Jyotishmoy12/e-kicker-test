@@ -253,7 +253,7 @@ const ProductDetails = () => {
           </div>
 
           {/* Product Description */}
-          <p className="mt-4 text-gray-600">{product.description}</p>
+          {/* <p className="mt-4 text-gray-600">{product.description}</p> */}
 
           {/* Product Highlights */}
           <div className="mt-6 space-y-4">
@@ -276,7 +276,7 @@ const ProductDetails = () => {
             </div>
             <div className="flex items-center">
               <Shield className="mr-2 text-purple-500" />
-              <span>1-Year Warranty</span>
+              <span>Easy Replacement</span>
             </div>
           </div>
 

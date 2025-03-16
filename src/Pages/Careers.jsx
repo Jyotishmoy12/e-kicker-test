@@ -10,6 +10,8 @@ import {
 } from 'lucide-react';
 
 import emailjs from '@emailjs/browser';
+import Footer from '../components/Footer';
+import Header from '../components/Navbar';
 
 const Careers = () => {
   const [applicationData, setApplicationData] = useState({
@@ -125,6 +127,8 @@ const Careers = () => {
   ];
 
   return (
+    <>
+    <Header/>
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
       <div className="bg-blue-600 text-white py-20 px-4">
@@ -325,6 +329,8 @@ const Careers = () => {
         </form>
       </div>
     </div>
+    <Footer/>
+    </>
   );
 };
 

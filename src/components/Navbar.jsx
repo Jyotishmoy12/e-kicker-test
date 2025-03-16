@@ -239,11 +239,14 @@ const Header = () => {
       <div className="container mx-auto max-w-screen-xl flex items-center justify-between py-4 px-6">
         {/* Logo with enhanced hover effect */}
         <div className="flex items-center">
+          <Link to='/'>
           <img
             className="h-20 w-40 mr-6 rounded-lg"
             src="/e-kickerhd.png"
             alt="logo"
           />
+          </Link>
+          
         </div>
 
         {/* Search Bar with enhanced styling */}

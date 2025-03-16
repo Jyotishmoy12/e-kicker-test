@@ -14,7 +14,8 @@ import {
   FlaskConical
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-
+import Header from '../components/Navbar';
+import Footer from '../components/Footer';
 const ProjectPrototyping = () => {
   const services = [
     {
@@ -97,6 +98,8 @@ const ProjectPrototyping = () => {
   ];
 
   return (
+    <>
+    <Header/>
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
       <header className="relative bg-gradient-to-r from-blue-600 to-blue-800 text-white py-20">
@@ -180,6 +183,8 @@ const ProjectPrototyping = () => {
         </div>
       </section>
     </div>
+    <Footer/>
+    </>
   );
 };
 

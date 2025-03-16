@@ -5,6 +5,8 @@ import { onAuthStateChanged } from 'firebase/auth';
 import { collection, getDocs, deleteDoc, doc, updateDoc } from 'firebase/firestore';
 import { ShoppingCart, Minus, Plus, Trash2, ArrowLeft } from 'lucide-react';
 import {toast} from "react-toastify"
+import Footer from '../components/Footer';
+import Header from '../components/Navbar';
 
 const CartPage = () => {
   const [user, setUser] = useState(null);
@@ -82,6 +84,9 @@ const CartPage = () => {
   }
 
   return (
+
+    <>
+    <Header/>
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 py-4 px-2 sm:py-12 sm:px-6">
       <div className="max-w-4xl mx-auto bg-white shadow-xl rounded-xl overflow-hidden">
         <div className="bg-blue-600 text-white py-4 px-4 flex items-center justify-between">
@@ -174,6 +179,8 @@ const CartPage = () => {
         )}
       </div>
     </div>
+    <Footer/>
+    </>
   );
 };
 

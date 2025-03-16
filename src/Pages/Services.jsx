@@ -1,6 +1,8 @@
 import React from 'react';
 import { Wrench, Bolt, Layers, Microscope } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import Footer from "../components/Footer"
+import Header from "../components/Navbar"
 
 const ServiceCard = ({ icon: Icon, title, description }) => (
   <div className="bg-white shadow-lg rounded-xl overflow-hidden transform transition-all duration-300 hover:scale-105 hover:shadow-xl">
@@ -39,6 +41,8 @@ const Services = () => {
   ];
 
   return (
+    <>
+    <Header/>
     <div className="bg-gray-50 min-h-screen">
       {/* Hero Section */}
       <div className="bg-blue-600 text-white py-20 px-4">
@@ -82,6 +86,8 @@ const Services = () => {
         </div>
       </div>
     </div>
+   <Footer/>
+    </>
   );
 };
 
