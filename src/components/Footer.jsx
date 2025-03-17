@@ -138,18 +138,6 @@ const Footer = () => {
             <p className="text-sm text-blue-200">
               © 2024 E-Kicker. All Rights Reserved.
             </p>
-            <div className="flex items-center text-blue-200 text-sm">
-              <Code className="w-4 h-4 mr-1 text-yellow-300" />
-              <span>Developed by</span>
-              <a 
-                href="https://www.linkedin.com/in/jyotishmoy-deka-6871b9229/"
-                className="ml-1 text-yellow-300 hover:text-yellow-400 transition-colors"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Jyotishmoy
-              </a>
-            </div>
           </div>
           <div className="flex space-x-4 mt-2 md:mt-0">
             <Link

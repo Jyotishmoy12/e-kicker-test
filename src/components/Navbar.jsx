@@ -311,7 +311,8 @@ const Header = () => {
                       <h3 className="font-bold text-blue-900 text-base group-hover:text-blue-700">
                         {highlightMatch(product.name, searchTerm)}
                       </h3>
-                      <p className="text-sm text-gray-600 font-semibold">${product.price?.toFixed(2) || '0.00'}</p>
+                      <p className="text-sm text-gray-600 font-semibold">₹
+                      {product.price?.toFixed(2) || '0.00'}</p>
                       {product.model && (
                         <p className="text-xs text-gray-500">Model: {highlightMatch(product.model, searchTerm)}</p>
                       )}
