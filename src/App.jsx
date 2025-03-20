@@ -23,6 +23,7 @@ import ProjectPrototyping from './Pages/ProjectPrototyping';
 import ProductsPage from './Pages/ProductsPage';
 import ScrollToTop from './components/ScrollToTop';
 import OrderConfirmation from './Pages/OrderConfirmation';
+import ProfilePage from './Pages/ProfilePage';
 import { AuthProvider } from './context/AuthContext';
 
 const App = () => {
@@ -61,6 +62,7 @@ const App = () => {
             <Route path ="/project-prototyping" element={<ProjectPrototyping/>}/>
             <Route path ="/products" element={<ProductsPage/>}/>
             <Route path="/order-confirmation/:orderId" element={<OrderConfirmation />} />
+            <Route path="/profile" element={<ProfilePage />} />
             {/* <Route path="/edit-product/:id" component={EditProduct} /> */}
             <Route path="/admin" element={
           <PrivateRoute adminOnly={true}>

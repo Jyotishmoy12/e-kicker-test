@@ -196,6 +196,7 @@ const Header = () => {
     { to: '/', label: 'Home' },
     { to: '/r&d', label: 'Research' },
     { to: '/account', label: 'Account' },
+    {to:'/profile', label:"Profile"},
     ...(userEmail === 'admfouekicker@gmail.com' ? [{ to: '/admin', label: 'Admin' }] : []),
   ];
 
