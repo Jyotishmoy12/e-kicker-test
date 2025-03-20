@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { auth, db } from '../../firebase';
-import { onAuthStateChanged } from 'firebase/auth';
+import { onAuthStateChanged, signOut } from 'firebase/auth';
 import ProductManagement from '../components/ProductManagement';
 import DocumentUpload from '../components/DocumentUpload';
 import Footer from '../components/Footer';
@@ -25,33 +25,50 @@ const AdminDashboard = () => {
     return () => unsubscribe();
   }, [navigate]);
 
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      navigate('/account');
+    } catch (error) {
+      console.error('Error during logout:', error);
+    }
+  };
+
   return (
     <>
-    <Header/>
-    <div className="container mx-auto px-4 py-6">
-      <h1 className="text-3xl font-bold text-blue-800">Admin Dashboard</h1>
+      <Header />
+      <div className="container mx-auto px-4 py-6">
+        <div className="flex justify-between items-center mb-4">
+          <h1 className="text-3xl font-bold text-blue-800">Admin Dashboard</h1>
+          <button
+            onClick={handleLogout}
+            className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+          >
+            Logout
+          </button>
+        </div>
 
-      {/* Tab Navigation */}
-      <div className="flex border-b mb-4">
-        <button
-          onClick={() => setActiveTab('products')}
-          className={`py-2 px-4 ${activeTab === 'products' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-600'}`}
-        >
-          Manage Products
-        </button>
-        <button
-          onClick={() => setActiveTab('documents')}
-          className={`py-2 px-4 ${activeTab === 'documents' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-600'}`}
-        >
-          Upload Documents
-        </button>
+        {/* Tab Navigation */}
+        <div className="flex border-b mb-4">
+          <button
+            onClick={() => setActiveTab('products')}
+            className={`py-2 px-4 ${activeTab === 'products' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-600'}`}
+          >
+            Manage Products
+          </button>
+          <button
+            onClick={() => setActiveTab('documents')}
+            className={`py-2 px-4 ${activeTab === 'documents' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-600'}`}
+          >
+            Upload Documents
+          </button>
+        </div>
+
+        {/* Tab Content */}
+        {activeTab === 'products' && <ProductManagement />}
+        {activeTab === 'documents' && <DocumentUpload />}
       </div>
-
-      {/* Tab Content */}
-      {activeTab === 'products' && <ProductManagement />}
-      {activeTab === 'documents' && <DocumentUpload />}
-    </div>
-    <Footer/>
+      <Footer />
     </>
   );
 };
