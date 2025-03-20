@@ -330,12 +330,13 @@ const ProductComponent = ({
                   </h3>
                   <div className="flex justify-between items-center mb-4">
                     <div>
-                      <span className="text-xl font-semibold text-blue-900 mr-2">
-                        ₹{product.price.toFixed(2)}
-                      </span>
-                      <span className="text-sm text-blue-500 line-through">
-                        ₹{product.originalPrice.toFixed(2)}
-                      </span>
+                    <span className="text-xl font-semibold text-blue-900 mr-2">
+  ₹{parseFloat(product.price || 0).toFixed(2)}
+</span>
+<span className="text-sm text-blue-500 line-through">
+  ₹{parseFloat(product.originalPrice || 0).toFixed(2)}
+</span>
+
                     </div>
                     <ProductRating 
                       productId={product.id} 

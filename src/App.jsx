@@ -15,20 +15,20 @@ import CartPage from './Pages/CartPage'
 import RDPage from './Pages/RDPage'
 import CheckOutPage from './Pages/CheckOutPage'
 import OrderConfirmationPage from './Pages/OrderConfirmationPage'
-import SellerForm from './Pages/Seller'
-import SellerProducts from './Pages/SellerProducts'
 import WishlistPage from './Pages/WishlistPage';
-import UserProfile from './Pages/UserProfile';
 import TermsOfUse from './Pages/TermsOfUse';
 import PrivacyPolicy from './Pages/PrivacyPolicy';
 import Repairing from './Pages/Repairing';
 import ProjectPrototyping from './Pages/ProjectPrototyping';
 import ProductsPage from './Pages/ProductsPage';
 import ScrollToTop from './components/ScrollToTop';
+import OrderConfirmation from './Pages/OrderConfirmation';
+import { AuthProvider } from './context/AuthContext';
 
 const App = () => {
   return (
     <>
+    <AuthProvider>
     <Router>
       <ScrollToTop/>
     <ToastContainer 
@@ -53,16 +53,14 @@ const App = () => {
             <Route path="/cart" element={<CartPage/>}/>
             <Route path ="/r&d" element={<RDPage/>}/>
             <Route path="/checkout" element={<CheckOutPage/>}/>
-            <Route path="/order-confirmation/:orderId" element={<OrderConfirmationPage />} />
-            <Route path="/seller-form" element={<SellerForm />} />
-            <Route path="/seller-products" element={<SellerProducts/>} />
+            {/* <Route path="/order-confirmation/:orderId" element={<OrderConfirmationPage />} /> */}
             <Route path ="/wishlist" element={<WishlistPage/>}/>
-            <Route path="/userprofile" element={<UserProfile/>}/>
             <Route path="/termsofuse" element={<TermsOfUse/>}/>
             <Route path="/privacypolicy" element={<PrivacyPolicy/>}/>
             <Route path="/repairing" element={<Repairing/>}/>
             <Route path ="/project-prototyping" element={<ProjectPrototyping/>}/>
             <Route path ="/products" element={<ProductsPage/>}/>
+            <Route path="/order-confirmation/:orderId" element={<OrderConfirmation />} />
             {/* <Route path="/edit-product/:id" component={EditProduct} /> */}
             <Route path="/admin" element={
           <PrivateRoute adminOnly={true}>
@@ -71,6 +69,7 @@ const App = () => {
         } />
         </Routes>
     </Router>
+    </AuthProvider>
     </>
   )
 }

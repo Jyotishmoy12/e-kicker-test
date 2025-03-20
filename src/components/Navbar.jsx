@@ -27,7 +27,7 @@ const Header = () => {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (user) {
+    if (user) {
         setUserEmail(user.email);
         localStorage.setItem('userEmail', user.email);
         try {

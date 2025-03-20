@@ -1,35 +1,29 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { auth, db } from '../../firebase';
-import { onAuthStateChanged } from 'firebase/auth';
-import { collection, getDocs, addDoc, deleteDoc, doc } from 'firebase/firestore';
-import { CreditCard, ShoppingBag, Check } from 'lucide-react';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { auth, db } from "../../firebase";
+import { onAuthStateChanged } from "firebase/auth";
+import { collection, getDocs, deleteDoc, doc, addDoc } from "firebase/firestore";
+import { ShoppingBag, CreditCard } from "lucide-react";
 import Navbar from "../components/Navbar";
 
 const CheckoutPage = () => {
   const [user, setUser] = useState(null);
   const [cartItems, setCartItems] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    address: '',
-    city: '',
-    state: '',
-    zipCode: '',  // Pincode field
-    cardNumber: '',
-    expiryDate: '',
-    cvv: ''
-  });
-  const [isPincodeValid, setIsPincodeValid] = useState(true);  // Track pincode validity
-
-  const validPincodes = ['110001', '110002', '110003']; // Add valid pincodes here
-
+  const [orderId, setOrderId] = useState(null);
+  const [showWhatsAppModal, setShowWhatsAppModal] = useState(false);
   const navigate = useNavigate();
-  
-  const googleFormUrl = "https://docs.google.com/forms/d/e/1FAIpQLSdU-1MiVmWSIqFtFKUDEBJbPc26IqpncSZ-CfVf5Haw8zHORQ/viewform" // Replace with your Google Form URL
-  
+
+  const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    phoneNumber: "",
+    email: "",
+    address: "",
+    city: "",
+    state: "",
+    zipCode: "",
+  });
 
   useEffect(() => {
     const unsubscribeAuth = onAuthStateChanged(auth, (currentUser) => {
@@ -38,7 +32,7 @@ const CheckoutPage = () => {
       if (currentUser) {
         const fetchCartItems = async () => {
           try {
-            const cartCollection = collection(db, 'users', currentUser.uid, 'cart');
+            const cartCollection = collection(db, "users", currentUser.uid, "cart");
             const cartSnapshot = await getDocs(cartCollection);
             const cartList = cartSnapshot.docs.map((doc) => ({
               id: doc.id,
@@ -46,20 +40,20 @@ const CheckoutPage = () => {
             }));
 
             setCartItems(cartList);
-            setFormData(prev => ({
+            setFormData((prev) => ({
               ...prev,
               email: currentUser.email,
             }));
             setLoading(false);
           } catch (error) {
-            console.error('Error fetching cart items:', error);
+            console.error("Error fetching cart items:", error);
             setLoading(false);
           }
         };
 
         fetchCartItems();
       } else {
-        navigate('/account');
+        navigate("/account");
         setLoading(false);
       }
     });
@@ -73,163 +67,191 @@ const CheckoutPage = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       [name]: value,
     }));
-    
-    if (name === 'zipCode') {
-      // Check if entered pincode is valid
-      if (validPincodes.includes(value)) {
-        setIsPincodeValid(true);
-      } else {
-        setIsPincodeValid(false);
-      }
-    }
   };
 
-  const handleSubmitOrder = async () => {
-    if (!isPincodeValid) {
-      alert('Invalid Pincode! You cannot place the order.');
+  const handlePayment = async () => {
+    if (
+      !formData.firstName ||
+      !formData.lastName ||
+      !formData.phoneNumber ||
+      !formData.address ||
+      !formData.city ||
+      !formData.state ||
+      !formData.zipCode
+    ) {
+      alert("Please fill in all details.");
       return;
     }
-  
-    try {
-      // Clear the cart in Firestore
-      const cartCollection = collection(db, 'users', user.uid, 'cart');
-      const cartSnapshot = await getDocs(cartCollection);
-      const cartDocs = cartSnapshot.docs;
-  
-      // Delete each cart item
-      for (const cartDoc of cartDocs) {
-        await deleteDoc(doc(db, 'users', user.uid, 'cart', cartDoc.id));
-      }
-  
-      // Redirect to the cart page
-      navigate('/cart');
-    } catch (error) {
-      console.error('Error clearing the cart:', error);
-    }
-  
-    // Redirect to Google Form (or proceed as necessary)
-    window.open(googleFormUrl, "_blank");
+
+    const totalAmount = calculateTotal();
+
+    const options = {
+      key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+      amount: totalAmount * 100,
+      currency: "INR",
+      name: "Your Store",
+      description: "Order Payment",
+      handler: async function (response) {
+        try {
+          const orderData = {
+            items: cartItems,
+            amount: totalAmount,
+            shipping: formData,
+            paymentId: response.razorpay_payment_id,
+            timestamp: new Date(),
+          };
+
+          const orderRef = await addDoc(collection(db, "users", user.uid, "orders"), orderData);
+          setOrderId(orderRef.id);
+
+          const cartCollection = collection(db, "users", user.uid, "cart");
+          const cartSnapshot = await getDocs(cartCollection);
+          for (const cartDoc of cartSnapshot.docs) {
+            await deleteDoc(doc(db, "users", user.uid, "cart", cartDoc.id));
+          }
+
+          // **Show WhatsApp modal after payment**
+          setShowWhatsAppModal(true);
+        } catch (error) {
+          console.error("Error saving order:", error);
+        }
+      },
+      prefill: {
+        name: `${formData.firstName} ${formData.lastName}`,
+        email: formData.email,
+        contact: formData.phoneNumber,
+      },
+      theme: {
+        color: "#3399cc",
+      },
+    };
+
+    const razorpay = new window.Razorpay(options);
+    razorpay.open();
   };
-  
+
+  const sendWhatsAppMessage = () => {
+    const adminNumber = "+916000460553"; // Change this to your admin's WhatsApp number
+    let message = `🛍 *New Order Received!*\n\n`;
+    message += `📦 *Order ID:* ${orderId}\n`;
+    message += `👤 *Customer:* ${formData.firstName} ${formData.lastName}\n`;
+    message += `📞 *Phone:* ${formData.phoneNumber}\n`;
+    message += `📍 *Address:* ${formData.address}, ${formData.city}, ${formData.state} - ${formData.zipCode}\n`;
+    message += `📧 *Email:* ${formData.email}\n\n`;
+    message += `💰 *Total Amount:* ₹${calculateTotal().toFixed(2)}\n\n`;
+    message += `🛒 *Order Items:*\n`;
+
+    cartItems.forEach((item) => {
+      message += `  - ${item.name} (x${item.quantity}) - ₹${(item.price * item.quantity).toFixed(2)}\n`;
+    });
+
+    const encodedMessage = encodeURIComponent(message);
+    const whatsappUrl = `https://wa.me/${adminNumber}?text=${encodedMessage}`;
+
+    window.open(whatsappUrl, "_blank");
+  };
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-screen bg-gradient-to-br from-blue-50 to-blue-100">
+      <div className="flex justify-center items-center h-screen">
         <div className="animate-spin rounded-full h-32 w-32 border-t-4 border-b-4 border-blue-600"></div>
       </div>
     );
   }
 
   if (cartItems.length === 0) {
-    navigate('/cart');
+    navigate("/cart");
     return null;
   }
 
   return (
     <>
       <Navbar />
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-5xl mx-auto bg-white shadow-2xl rounded-2xl overflow-hidden grid md:grid-cols-2 gap-8">
-          <div className="bg-blue-50 p-8">
+      <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-5xl mx-auto bg-white shadow-xl rounded-xl p-8 grid md:grid-cols-2 gap-8">
+          {/* Order Summary */}
+          <div>
             <div className="flex items-center mb-6">
               <ShoppingBag className="w-10 h-10 text-blue-600 mr-4" />
-              <h2 className="text-3xl font-extrabold text-blue-900">Order Summary</h2>
+              <h2 className="text-3xl font-bold">Order Summary</h2>
             </div>
-            <div className="divide-y divide-blue-200">
-              {cartItems.map((item) => (
-                <div key={item.id} className="flex justify-between py-4">
-                  <div className="flex items-center space-x-4">
-                    <img
-                      src={item.image || 'vite.svg'}
-                      alt={item.name}
-                      className="w-20 h-20 object-cover rounded-xl"
-                    />
-                    <div>
-                      <h3 className="font-bold text-blue-900">{item.name}</h3>
-                      <p className="text-gray-600">Quantity: {item.quantity}</p>
-                    </div>
+            {cartItems.map((item) => (
+              <div key={item.id} className="flex justify-between py-4">
+                <div className="flex items-center space-x-4">
+                  <img src={item.image || "vite.svg"} alt={item.name} className="w-20 h-20 rounded-xl" />
+                  <div>
+                    <h3 className="font-bold">{item.name}</h3>
+                    <p>Quantity: {item.quantity}</p>
                   </div>
-                  <p className="font-bold text-blue-800">
-                    ₹{(item.price * item.quantity).toFixed(2)}
-                  </p>
                 </div>
-              ))}
-            </div>
-            <div className="mt-6 pt-6 border-t border-blue-200 flex justify-between">
-              <span className="text-xl font-bold text-blue-900">Total</span>
-              <span className="text-2xl font-extrabold text-blue-800">
-                ₹{calculateTotal().toFixed(2)}
-              </span>
+                <p className="font-bold">₹{(item.price * item.quantity).toFixed(2)}</p>
+              </div>
+            ))}
+            <div className="mt-6 pt-6 border-t flex justify-between">
+              <span className="text-xl font-bold">Total</span>
+              <span className="text-2xl font-extrabold">₹{calculateTotal().toFixed(2)}</span>
             </div>
           </div>
-          <div className="p-8">
+
+          {/* Checkout Form */}
+          <div>
             <div className="flex items-center mb-6">
               <CreditCard className="w-10 h-10 text-blue-600 mr-4" />
-              <h2 className="text-3xl font-extrabold text-blue-900">Checkout</h2>
+              <h2 className="text-3xl font-bold">Checkout</h2>
             </div>
-            <form onSubmit={handleSubmitOrder} className="space-y-6">
-              {/* Form fields */}
-              <div className="grid md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-blue-900 mb-2">First Name</label>
-                  <input 
-                    type="text" 
-                    name="firstName"
-                    value={formData.firstName}
+            <form className="space-y-4">
+              {["firstName", "lastName", "phoneNumber", "email", "address", "city", "state", "zipCode"].map((field) => (
+                <div key={field}>
+                  <label className="block mb-2 capitalize">{field.replace(/([A-Z])/g, " $1")}</label>
+                  <input
+                    type={field === "email" ? "email" : "text"}
+                    name={field}
+                    value={formData[field]}
                     onChange={handleInputChange}
                     required
-                    className="w-full px-4 py-2 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-2 border rounded-lg"
                   />
                 </div>
-                <div>
-                  <label className="block text-blue-900 mb-2">Last Name</label>
-                  <input 
-                    type="text" 
-                    name="lastName"
-                    value={formData.lastName}
-                    onChange={handleInputChange}
-                    required
-                    className="w-full px-4 py-2 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-              </div>
-
-              {/* Other fields */}
-              {/* <div>
-                <label className="block text-blue-900 mb-2">Pincode (Zip Code)</label>
-                <input
-                  type="text"
-                  name="zipCode"
-                  value={formData.zipCode}
-                  onChange={handleInputChange}
-                  required
-                  className="w-full px-4 py-2 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-                {!isPincodeValid && (
-                  <p className="text-red-500 text-sm">Invalid Pincode! Please enter a valid pincode.</p>
-                )}
-              </div> */}
-
-              <button
-                type="button"
-                onClick={handleSubmitOrder}
-                // disabled={!isPincodeValid}
-                className={`w-full py-3 font-bold rounded-lg ${isPincodeValid ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-gray-400 text-gray-200 cursor-not-allowed'}`}
-              >
-                Place Order
+              ))}
+              <button type="button" onClick={handlePayment} className="w-full py-3 font-bold bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                Pay with Razorpay
               </button>
-              
-              <p className="font-serif font-bold">Note: Please be aware that we are currently using Google Forms for orders. Therefore, kindly keep track of your order, as your cart will be emptied once you click on "Place Order"! </p>
             </form>
           </div>
         </div>
+        
       </div>
+
+      {showWhatsAppModal && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+              <div className="bg-white p-6 rounded-lg text-center">
+                <h2 className="text-xl font-bold mb-4">Order Placed Successfully!</h2>
+                <p>Your order details have been saved. Would you like to share them on WhatsApp?</p>
+                <div className="mt-4 flex justify-center space-x-4">
+                  <button
+                    onClick={sendWhatsAppMessage}
+                    className="bg-green-500 text-white px-4 py-2 rounded-lg"
+                  >
+                    Send Details to Admin
+                  </button>
+                  <button
+                    onClick={() => navigate(`/order-confirmation/${orderId}`)}
+                    className="bg-blue-500 text-white px-4 py-2 rounded-lg"
+                  >
+                    Go to Order Confirmation
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+    
     </>
   );
+  
 };
 
 export default CheckoutPage;
