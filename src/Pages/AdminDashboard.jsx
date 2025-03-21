@@ -6,6 +6,7 @@ import ProductManagement from '../components/ProductManagement';
 import DocumentUpload from '../components/DocumentUpload';
 import Footer from '../components/Footer';
 import Header from '../components/Navbar';
+import AdminOrders from '../components/AdminOrders';
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('products'); // Default to "Manage Products"
@@ -62,11 +63,18 @@ const AdminDashboard = () => {
           >
             Upload Documents
           </button>
+          <button
+            onClick={() => setActiveTab('orders')}
+            className={`py-2 px-4 ${activeTab === 'orders' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-600'}`}
+          >
+            Orders Documents
+          </button>
         </div>
 
         {/* Tab Content */}
         {activeTab === 'products' && <ProductManagement />}
         {activeTab === 'documents' && <DocumentUpload />}
+        {activeTab === 'orders' && <AdminOrders />}
       </div>
       <Footer />
     </>

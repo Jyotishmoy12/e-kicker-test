@@ -17,7 +17,6 @@ const ProductRating = ({ productId, currentRating = 0 }) => {
   useEffect(() => {
     const checkUserRating = async () => {
       if (!auth.currentUser) return;
-
       try {
         const ratingsRef = collection(db, 'ratings');
         const q = query(
@@ -26,13 +25,11 @@ const ProductRating = ({ productId, currentRating = 0 }) => {
           where('userId', '==', auth.currentUser.uid)
         );
         const snapshot = await getDocs(q);
-
         if (!snapshot.empty) {
           const userRatingDoc = snapshot.docs[0].data();
           setUserRating(userRatingDoc.rating);
           setHasRated(true);
         }
-
         // Get total ratings
         const allRatingsQuery = query(ratingsRef, where('productId', '==', productId));
         const allRatingsSnapshot = await getDocs(allRatingsQuery);
@@ -41,7 +38,6 @@ const ProductRating = ({ productId, currentRating = 0 }) => {
         console.error('Error checking user rating:', error);
       }
     };
-
     checkUserRating();
   }, [productId]);
 
@@ -50,11 +46,9 @@ const ProductRating = ({ productId, currentRating = 0 }) => {
       toast.error('Please login to rate this product');
       return;
     }
-
     setIsLoading(true);
     try {
       const ratingsRef = collection(db, 'ratings');
-      
       // Check if user has already rated
       const q = query(
         ratingsRef,
@@ -62,12 +56,10 @@ const ProductRating = ({ productId, currentRating = 0 }) => {
         where('userId', '==', auth.currentUser.uid)
       );
       const snapshot = await getDocs(q);
-
       if (!snapshot.empty) {
         toast.info('You have already rated this product');
         return;
       }
-
       // Add new rating
       await addDoc(ratingsRef, {
         productId,
@@ -75,26 +67,21 @@ const ProductRating = ({ productId, currentRating = 0 }) => {
         rating: selectedRating,
         timestamp: new Date()
       });
-
       // Update product's average rating
       const allRatingsQuery = query(ratingsRef, where('productId', '==', productId));
       const allRatingsSnapshot = await getDocs(allRatingsQuery);
-      
       let totalRating = selectedRating;
       allRatingsSnapshot.forEach(doc => {
         if (doc.data().userId !== auth.currentUser.uid) {
           totalRating += doc.data().rating;
         }
       });
-
       const averageRating = totalRating / (allRatingsSnapshot.size + 1);
-
       // Update product document
       const productRef = doc(db, 'products', productId);
       await updateDoc(productRef, {
         ratings: averageRating
       });
-
       setHasRated(true);
       setUserRating(selectedRating);
       setTotalRatings(prev => prev + 1);
@@ -117,9 +104,7 @@ const ProductRating = ({ productId, currentRating = 0 }) => {
             onClick={() => submitRating(star)}
             onMouseEnter={() => setHover(star)}
             onMouseLeave={() => setHover(0)}
-            className={`focus:outline-none ${
-              isLoading ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'
-            }`}
+            className={`focus:outline-none ${isLoading ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
           >
             <Star
               className={`w-4 h-4 ${
@@ -162,13 +147,13 @@ const ProductComponent = ({
   const [user, setUser] = useState(null);
   const [cartCount, setCartCount] = useState(0);
   const [wishlistItems, setWishlistItems] = useState(new Set());
+  const [selectedCategory, setSelectedCategory] = useState('All');
   const navigate = useNavigate();
 
   useEffect(() => {
     const unsubscribeAuth = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
     });
-
     if (user) {
       const fetchUserData = async () => {
         try {
@@ -188,7 +173,6 @@ const ProductComponent = ({
       };
       fetchUserData();
     }
-
     return () => unsubscribeAuth();
   }, [user]);
 
@@ -201,17 +185,14 @@ const ProductComponent = ({
       toast.error('This product is currently out of stock');
       return;
     }
-
     try {
       const cartCollection = collection(db, 'users', user.uid, 'cart');
       const q = query(cartCollection, where('productId', '==', product.id));
       const cartSnapshot = await getDocs(q);
-
       if (!cartSnapshot.empty) {
         toast.info('Item is already in your cart!');
         return;
       }
-
       await addDoc(cartCollection, {
         productId: product.id,
         name: product.name,
@@ -232,19 +213,16 @@ const ProductComponent = ({
       navigate('/account');
       return;
     }
-
     if (!product.inStock) {
       toast.error('Out of stock items cannot be added to wishlist');
       return;
     }
     try {
       const wishlistCollection = collection(db, 'users', user.uid, 'wishlist');
-      
       if (wishlistItems.has(product.id)) {
         toast.info('Item is already in your wishlist!');
         return;
       }
-
       await addDoc(wishlistCollection, {
         productId: product.id,
         name: product.name,
@@ -252,7 +230,6 @@ const ProductComponent = ({
         image: product.image,
         inStock: product.inStock
       });
-      
       setWishlistItems(prev => new Set([...prev, product.id]));
       toast.success('Item added to wishlist!');
     } catch (error) {
@@ -260,6 +237,11 @@ const ProductComponent = ({
       toast.error('Failed to add item to wishlist');
     }
   };
+
+  // Filter products based on selected category
+  const filteredProducts = selectedCategory === 'All'
+    ? products
+    : products.filter(product => product.category === selectedCategory);
 
   return (
     <div className="container mx-auto px-4 py-8 bg-neutral-50">
@@ -287,20 +269,32 @@ const ProductComponent = ({
         )}
       </div>
 
-      {products.length === 0 ? (
+      {/* Dropdown to filter by category */}
+      <div className="mb-6">
+        <select
+          value={selectedCategory}
+          onChange={(e) => setSelectedCategory(e.target.value)}
+          className="border rounded px-4 py-2"
+        >
+          <option value="All">All Categories</option>
+          <option value="Electronics">Electronics</option>
+          <option value="Electrical">Electrical</option>
+        </select>
+      </div>
+
+      {filteredProducts.length === 0 ? (
         <div className="text-center py-16">
           <p className="text-xl text-neutral-500">No products available</p>
         </div>
       ) : (
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {products.map((product) => (
+            {filteredProducts.map((product) => (
               <div 
                 key={product.id} 
                 className="bg-white border border-neutral-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow group"
               >
                 <div className="relative">
-                  {/* For Mobile - Clickable image to go to product details */}
                   <Link to={`/productDetails/${product.id}`} className="block">
                     <img 
                       src={product.image || 'vite.svg'} 
@@ -323,36 +317,31 @@ const ProductComponent = ({
                     />
                   </button>
                 </div>
-
                 <div className="p-4">
                   <h3 className="text-lg font-medium text-blue-800 mb-2 truncate">
                     {product.name}
                   </h3>
                   <div className="flex justify-between items-center mb-4">
                     <div>
-                    <span className="text-xl font-semibold text-blue-900 mr-2">
-  ₹{parseFloat(product.price || 0).toFixed(2)}
-</span>
-<span className="text-sm text-blue-500 line-through">
-  ₹{parseFloat(product.originalPrice || 0).toFixed(2)}
-</span>
-
+                      <span className="text-xl font-semibold text-blue-900 mr-2">
+                        ₹{parseFloat(product.price || 0).toFixed(2)}
+                      </span>
+                      <span className="text-sm text-blue-500 line-through">
+                        ₹{parseFloat(product.originalPrice || 0).toFixed(2)}
+                      </span>
                     </div>
                     <ProductRating 
                       productId={product.id} 
                       currentRating={product.ratings} 
                     />
                   </div>
-
                   <div className="flex space-x-2">
-                    {/* Show "Details" button on larger screens only */}
                     <Link 
                       to={`/productDetails/${product.id}`} 
                       className="hidden md:inline-block py-2 px-4 rounded-md text-white bg-blue-800 hover:bg-blue-700 transition-colors"
                     >
                       Details
                     </Link>
-
                     <button 
                       onClick={() => handleAddToCart(product)} 
                       className={`flex-1 py-2 rounded-md text-white transition-colors ${

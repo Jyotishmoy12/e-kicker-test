@@ -35,12 +35,13 @@ const WishlistPage = () => {
             docId: doc.id,
             ...doc.data(),
             inStock: productData.inStock,
-            currentPrice: productData.price,
-            originalPrice: productData.originalPrice,
+            currentPrice: productData.price ? parseFloat(productData.price) : 0,
+            originalPrice: productData.originalPrice ? parseFloat(productData.originalPrice) : 0,
             description: productData.description,
             ratings: productData.ratings
           };
         });
+        
         
         // Filter out any out-of-stock items
         const inStockItems = items.filter(item => item.inStock);

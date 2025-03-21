@@ -72,8 +72,9 @@ const CheckoutPage = () => {
   }, [navigate]);
 
   const calculateTotal = () => {
-    return cartItems.reduce((total, item) => total + item.price * item.quantity, 0);
+    return cartItems.reduce((total, item) => total + Number(item.price) * item.quantity, 0);
   };
+  
 
   const validateForm = () => {
     const errors = {};
@@ -281,11 +282,13 @@ const CheckoutPage = () => {
                               {item.name}
                             </h3>
                             <p className="text-sm text-gray-500">
-                              ₹{item.price.toFixed(2)} each
+                            ₹{Number(item.price).toFixed(2)} each
+
                             </p>
                           </div>
                         </div>
-                        <p className="font-bold">₹{(item.price * item.quantity).toFixed(2)}</p>
+                        <p className="font-bold">₹₹{(Number(item.price) * item.quantity).toFixed(2)}
+                        </p>
                       </div>
                     ))}
                   </div>

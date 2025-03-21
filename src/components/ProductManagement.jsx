@@ -17,6 +17,7 @@ const ProductManagement = () => {
     image: '',
     ratings: 0,
     inStock: true,
+    category: 'Electronics', // default category
   });
   const [editingProduct, setEditingProduct] = useState(null);
   const [imageFile, setImageFile] = useState(null);
@@ -34,7 +35,6 @@ const ProductManagement = () => {
             price: parseFloat(doc.data().price || 0),
             originalPrice: parseFloat(doc.data().originalPrice || 0),
           }));
-          
         setProducts(productList);
       } catch (error) {
         console.error('Error fetching products:', error);
@@ -94,7 +94,7 @@ const ProductManagement = () => {
         });
 
         setProducts([...products, { id: docRef.id, ...newProduct, image: imageUrl }]);
-        setNewProduct({ name: '', description: '', price: '', originalPrice: '', image: '', ratings: 0, inStock: true });
+        setNewProduct({ name: '', description: '', price: '', originalPrice: '', image: '', ratings: 0, inStock: true, category: 'Electronics' });
         toast.success('Product added successfully');
       }
 
@@ -143,38 +143,71 @@ const ProductManagement = () => {
     }
   };
 
+  // Group products by category
+  const electronicsProducts = products.filter(p => p.category === 'Electronics');
+  const electricalProducts = products.filter(p => p.category === 'Electrical');
+
   return (
     <div>
       <h2 className="text-2xl font-semibold mb-4">Manage Products</h2>
       <form onSubmit={handleAddOrUpdateProduct} className="bg-white p-6 rounded-lg shadow-md mb-6">
         <div className="grid grid-cols-2 gap-4">
-          <input type="text" placeholder="Product Name" value={editingProduct ? editingProduct.name : newProduct.name}
+          <input 
+            type="text" 
+            placeholder="Product Name" 
+            value={editingProduct ? editingProduct.name : newProduct.name}
             onChange={(e) => editingProduct
               ? setEditingProduct({ ...editingProduct, name: e.target.value })
               : setNewProduct({ ...newProduct, name: e.target.value })}
             className="border p-2 rounded"
-            required />
+            required 
+          />
 
-          <input type="text" placeholder="Description" value={editingProduct ? editingProduct.description : newProduct.description}
+          <input 
+            type="text" 
+            placeholder="Description" 
+            value={editingProduct ? editingProduct.description : newProduct.description}
             onChange={(e) => editingProduct
               ? setEditingProduct({ ...editingProduct, description: e.target.value })
               : setNewProduct({ ...newProduct, description: e.target.value })}
             className="border p-2 rounded"
-            required />
+            required 
+          />
 
-          <input type="number" placeholder="Price" value={editingProduct ? editingProduct.price : newProduct.price}
+          <input 
+            type="number" 
+            placeholder="Price" 
+            value={editingProduct ? editingProduct.price : newProduct.price}
             onChange={(e) => editingProduct
               ? setEditingProduct({ ...editingProduct, price: e.target.value })
               : setNewProduct({ ...newProduct, price: e.target.value })}
             className="border p-2 rounded"
-            required />
+            required 
+          />
 
-          <input type="number" placeholder="Original Price" value={editingProduct ? editingProduct.originalPrice : newProduct.originalPrice}
+          <input 
+            type="number" 
+            placeholder="Original Price" 
+            value={editingProduct ? editingProduct.originalPrice : newProduct.originalPrice}
             onChange={(e) => editingProduct
               ? setEditingProduct({ ...editingProduct, originalPrice: e.target.value })
               : setNewProduct({ ...newProduct, originalPrice: e.target.value })}
             className="border p-2 rounded"
-            required />
+            required 
+          />
+
+          {/* New Category Field */}
+          <select 
+            value={editingProduct ? editingProduct.category : newProduct.category}
+            onChange={(e) => editingProduct
+              ? setEditingProduct({ ...editingProduct, category: e.target.value })
+              : setNewProduct({ ...newProduct, category: e.target.value })}
+            className="border p-2 rounded"
+            required
+          >
+            <option value="Electronics">Electronics</option>
+            <option value="Electrical">Electrical</option>
+          </select>
 
           <input type="file" accept="image/*" onChange={handleImageChange} className="border p-2 rounded" />
           {imagePreview && <img src={imagePreview} alt="Preview" className="w-24 h-24 rounded border" />}
@@ -186,31 +219,71 @@ const ProductManagement = () => {
         </button>
       </form>
 
-      {/* Product List */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {products.map((product) => (
-          <div key={product.id} className="bg-white rounded-lg shadow-md p-4">
-            <h3 className="text-lg font-semibold">{product.name}</h3>
-            <img src={product.image} alt={product.name} className="w-full h-32 object-cover rounded" />
-            <p className="text-gray-600 mt-2">Price: ₹{product.price}</p>
-            <p className="text-gray-500 line-through">Original: ₹{product.originalPrice}</p>
+      {/* Grouped Product List */}
+      <div className="mb-8">
+        <h3 className="text-xl font-bold mb-4">Electronics</h3>
+        {electronicsProducts.length === 0 ? (
+          <p className="text-gray-500">No electronics products available.</p>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {electronicsProducts.map((product) => (
+              <div key={product.id} className="bg-white rounded-lg shadow-md p-4">
+                <h3 className="text-lg font-semibold">{product.name}</h3>
+                <img src={product.image} alt={product.name} className="w-full h-32 object-cover rounded" />
+                <p className="text-gray-600 mt-2">Price: ₹{product.price}</p>
+                <p className="text-gray-500 line-through">Original: ₹{product.originalPrice}</p>
 
-            <div className="flex justify-between mt-4">
-              <button onClick={() => toggleStockStatus(product.id, product.inStock)}
-                className={`text-white px-3 py-1 rounded-lg ${product.inStock ? 'bg-green-500' : 'bg-red-500'}`}>
-                {product.inStock ? 'In Stock' : 'Out of Stock'}
-              </button>
+                <div className="flex justify-between mt-4">
+                  <button onClick={() => toggleStockStatus(product.id, product.inStock)}
+                    className={`text-white px-3 py-1 rounded-lg ${product.inStock ? 'bg-green-500' : 'bg-red-500'}`}>
+                    {product.inStock ? 'In Stock' : 'Out of Stock'}
+                  </button>
 
-              <button onClick={() => setEditingProduct(product)} className="text-blue-600 hover:text-blue-800">
-                <Edit />
-              </button>
+                  <button onClick={() => setEditingProduct(product)} className="text-blue-600 hover:text-blue-800">
+                    <Edit />
+                  </button>
 
-              <button onClick={() => handleDeleteProduct(product.id)} className="text-red-600 hover:text-red-800">
-                <Trash2 />
-              </button>
-            </div>
+                  <button onClick={() => handleDeleteProduct(product.id)} className="text-red-600 hover:text-red-800">
+                    <Trash2 />
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
-        ))}
+        )}
+      </div>
+
+      <div>
+        <h3 className="text-xl font-bold mb-4">Electrical Components</h3>
+        {electricalProducts.length === 0 ? (
+          <p className="text-gray-500">No electrical products available.</p>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {electricalProducts.map((product) => (
+              <div key={product.id} className="bg-white rounded-lg shadow-md p-4">
+                <h3 className="text-lg font-semibold">{product.name}</h3>
+                <img src={product.image} alt={product.name} className="w-full h-32 object-cover rounded" />
+                <p className="text-gray-600 mt-2">Price: ₹{product.price}</p>
+                <p className="text-gray-500 line-through">Original: ₹{product.originalPrice}</p>
+
+                <div className="flex justify-between mt-4">
+                  <button onClick={() => toggleStockStatus(product.id, product.inStock)}
+                    className={`text-white px-3 py-1 rounded-lg ${product.inStock ? 'bg-green-500' : 'bg-red-500'}`}>
+                    {product.inStock ? 'In Stock' : 'Out of Stock'}
+                  </button>
+
+                  <button onClick={() => setEditingProduct(product)} className="text-blue-600 hover:text-blue-800">
+                    <Edit />
+                  </button>
+
+                  <button onClick={() => handleDeleteProduct(product.id)} className="text-red-600 hover:text-red-800">
+                    <Trash2 />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

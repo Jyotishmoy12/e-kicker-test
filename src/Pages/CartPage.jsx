@@ -67,9 +67,12 @@ const CartPage = () => {
   };
 
   const calculateTotal = () => {
-    return cartItems.reduce((total, item) => total + item.price * item.quantity, 0);
+    return cartItems.reduce(
+      (total, item) => total + Number(item.price) * item.quantity,
+      0
+    );
   };
-
+  
   if (loading) {
     return (
       <div className="flex justify-center items-center h-screen bg-gradient-to-br from-blue-50 to-blue-100">
@@ -117,7 +120,10 @@ const CartPage = () => {
                     />
                     <div>
                       <h3 className="text-lg sm:text-xl font-bold text-blue-900 mb-2">{item.name}</h3>
-                      <p className="text-gray-600 mb-3">Price: ₹{(item.price || 0).toFixed(2)}</p>
+                      <p className="text-xl sm:text-2xl font-bold text-blue-800">
+  ₹{(Number(item.price) * item.quantity).toFixed(2)}
+</p>
+
                       <div className="flex items-center space-x-4 bg-blue-100 rounded-full px-2 py-1 w-fit">
                         <button
                           onClick={() => handleUpdateQuantity(item.id, item.quantity - 1)}
