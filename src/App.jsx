@@ -24,6 +24,8 @@ import ProductsPage from './Pages/ProductsPage';
 import ScrollToTop from './components/ScrollToTop';
 import OrderConfirmation from './Pages/OrderConfirmation';
 import ProfilePage from './Pages/ProfilePage';
+import SellerForm from './Pages/SellerForm';
+import SellerProfile from './Pages/SellerProfile';
 import { AuthProvider } from './context/AuthContext';
 
 const App = () => {
@@ -63,6 +65,9 @@ const App = () => {
             <Route path ="/products" element={<ProductsPage/>}/>
             <Route path="/order-confirmation/:orderId" element={<OrderConfirmation />} />
             <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/seller-form" element={<SellerForm />} />
+            <Route path="/seller-profile/:sellerId" element={<SellerProfile />} />
+
             {/* <Route path="/edit-product/:id" component={EditProduct} /> */}
             <Route path="/admin" element={
           <PrivateRoute adminOnly={true}>

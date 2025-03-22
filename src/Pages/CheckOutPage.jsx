@@ -171,7 +171,7 @@ const CheckoutPage = () => {
   };
 
   const sendWhatsAppMessage = () => {
-    const adminNumber = "+916000460553";
+    const adminNumber = "+919395416435";
     let message = `🛍 *New Order Received!*\n\n`;
     message += `📦 *Order ID:* ${orderId}\n`;
     message += `👤 *Customer:* ${formData.firstName} ${formData.lastName}\n`;

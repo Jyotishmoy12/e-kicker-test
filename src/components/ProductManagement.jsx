@@ -221,7 +221,7 @@ const ProductManagement = () => {
 
       {/* Grouped Product List */}
       <div className="mb-8">
-        <h3 className="text-xl font-bold mb-4">Electronics</h3>
+        <h3 className="text-xl font-bold mb-4">Electronics Components</h3>
         {electronicsProducts.length === 0 ? (
           <p className="text-gray-500">No electronics products available.</p>
         ) : (

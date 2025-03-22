@@ -124,7 +124,7 @@ const ProductRating = ({ productId, currentRating = 0 }) => {
           <p>Rate this product</p>
         )}
         <p className="text-xs mt-1">
-          Average rating: {currentRating.toFixed(1)}/5 ({totalRatings} {totalRatings === 1 ? 'rating' : 'ratings'})
+           {currentRating.toFixed(1)}/5 ({totalRatings} {totalRatings === 1 ? 'rating' : 'ratings'})
         </p>
       </div>
       

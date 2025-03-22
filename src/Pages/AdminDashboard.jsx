@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { auth, db } from '../../firebase';
+import { auth } from '../../firebase';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import ProductManagement from '../components/ProductManagement';
 import DocumentUpload from '../components/DocumentUpload';
 import Footer from '../components/Footer';
 import Header from '../components/Navbar';
 import AdminOrders from '../components/AdminOrders';
+import SellerProfiles from '../components/SellersInfo';
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('products'); // Default to "Manage Products"
@@ -22,7 +23,6 @@ const AdminDashboard = () => {
         navigate('/account'); // Redirect unauthorized users
       }
     });
-
     return () => unsubscribe();
   }, [navigate]);
 
@@ -69,12 +69,19 @@ const AdminDashboard = () => {
           >
             Orders Documents
           </button>
+          <button
+            onClick={() => setActiveTab('sellers')}
+            className={`py-2 px-4 ${activeTab === 'sellers' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-600'}`}
+          >
+            Seller Profiles
+          </button>
         </div>
 
         {/* Tab Content */}
         {activeTab === 'products' && <ProductManagement />}
         {activeTab === 'documents' && <DocumentUpload />}
         {activeTab === 'orders' && <AdminOrders />}
+        {activeTab === 'sellers' && <SellerProfiles />}
       </div>
       <Footer />
     </>
