@@ -14,6 +14,9 @@ const SellerProfile = () => {
   const navigate = useNavigate();
   const { sellerId: urlSellerId } = useParams();
 
+  // Determine sellerId for dynamic dashboard navigation
+  const sellerId = urlSellerId || (auth.currentUser ? auth.currentUser.uid : localStorage.getItem('sellerId'));
+
   // Check if the current user is an admin
   useEffect(() => {
     const checkAdminStatus = () => {
@@ -33,12 +36,6 @@ const SellerProfile = () => {
     const setupSellerProfile = async () => {
       try {
         setLoading(true);
-        // Determine which seller ID to use:
-        // 1. URL parameter (if admin is viewing someone else's profile)
-        // 2. Current auth user (if seller viewing own profile)
-        // 3. localStorage (fallback)
-        let sellerId = urlSellerId || 
-                      (auth.currentUser ? auth.currentUser.uid : localStorage.getItem('sellerId'));
         
         if (!sellerId) {
           toast.error('Seller ID not found');
@@ -94,7 +91,7 @@ const SellerProfile = () => {
 
     setupSellerProfile();
     return () => unsubscribe();
-  }, [navigate, urlSellerId]);
+  }, [navigate, urlSellerId, sellerId]);
 
   const handleLogout = async () => {
     try {
@@ -168,10 +165,10 @@ const SellerProfile = () => {
                 {isAdmin && urlSellerId ? 'Seller Profile' : 'Seller Dashboard'}
               </h1>
               <div className="flex flex-wrap gap-2">
-                {/* Show the "Access Dashboard" button only if verified and not admin */}
+                {/* Dynamically open the dashboard for this seller */}
                 {sellerInfo.verified === true && (
                   <button
-                    onClick={() => navigate('/seller-dashboard')}
+                    onClick={() => navigate(`/seller-dashboard/${sellerId}`)}
                     className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
                   >
                     Access Dashboard
@@ -269,7 +266,7 @@ const SellerProfile = () => {
             </div>
           </div>
 
-          {/* Products Section - Only visible if verified */}
+          {/* Products Section */}
           {sellerInfo.verified === true ? (
             <div className="px-6 py-6 border-t border-gray-200">
               <div className="flex justify-between items-center mb-4">

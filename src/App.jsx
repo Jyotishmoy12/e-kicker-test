@@ -26,6 +26,7 @@ import OrderConfirmation from './Pages/OrderConfirmation';
 import ProfilePage from './Pages/ProfilePage';
 import SellerForm from './Pages/SellerForm';
 import SellerProfile from './Pages/SellerProfile';
+import SellerDashboard from './Pages/SellerDashboard';
 import { AuthProvider } from './context/AuthContext';
 
 const App = () => {
@@ -67,6 +68,8 @@ const App = () => {
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/seller-form" element={<SellerForm />} />
             <Route path="/seller-profile/:sellerId" element={<SellerProfile />} />
+            <Route path="/seller-dashboard/:sellerId" element={<SellerDashboard />} />
+
 
             {/* <Route path="/edit-product/:id" component={EditProduct} /> */}
             <Route path="/admin" element={

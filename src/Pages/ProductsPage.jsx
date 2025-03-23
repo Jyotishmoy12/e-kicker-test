@@ -5,6 +5,7 @@ import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../../firebase';
 import ProductComponent from '../components/ProductComponent';
 
+
 const ProductsPage = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -226,6 +227,7 @@ const ProductsPage = () => {
           </div>
         </div>
       </div>
+      
       <Footer/>
     </>
   );

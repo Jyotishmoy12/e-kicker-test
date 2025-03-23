@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { collection, getDocs, addDoc, deleteDoc, updateDoc, doc } from 'firebase/firestore';
+import { collection, getDocs, addDoc, deleteDoc, updateDoc, doc, query, where } from 'firebase/firestore';
 import { auth, db } from '../../firebase';
 import { Trash2, Edit, PlusCircle } from 'lucide-react';
 import { toast } from 'react-toastify';
@@ -27,8 +27,11 @@ const ProductManagement = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const productsCollection = collection(db, 'products');
-        const productSnapshot = await getDocs(productsCollection);
+        const adminProductsQuery = query(
+          collection(db, 'products'), 
+          where('isAdminProduct', '==', true)
+        );
+        const productSnapshot = await getDocs(adminProductsQuery);
         const productList = productSnapshot.docs.map((doc) => ({
             id: doc.id,
             ...doc.data(),
@@ -91,6 +94,8 @@ const ProductManagement = () => {
         const docRef = await addDoc(collection(db, 'products'), {
           ...newProduct,
           image: imageUrl,
+          isAdminProduct:true,
+          createdBy:'admin'
         });
 
         setProducts([...products, { id: docRef.id, ...newProduct, image: imageUrl }]);
