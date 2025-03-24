@@ -27,6 +27,8 @@ import ProfilePage from './Pages/ProfilePage';
 import SellerForm from './Pages/SellerForm';
 import SellerProfile from './Pages/SellerProfile';
 import SellerDashboard from './Pages/SellerDashboard';
+import SellerProductsPage from './Pages/SellerProductPage';
+import SellerProductDetailsPage from './Pages/SellerProductDetailsPage';
 import { AuthProvider } from './context/AuthContext';
 
 const App = () => {
@@ -69,6 +71,8 @@ const App = () => {
             <Route path="/seller-form" element={<SellerForm />} />
             <Route path="/seller-profile/:sellerId" element={<SellerProfile />} />
             <Route path="/seller-dashboard/:sellerId" element={<SellerDashboard />} />
+            <Route path="/sellerProducts" element={<SellerProductsPage />} />
+            <Route path="/product/:productId" element={<SellerProductDetailsPage />} />
 
 
             {/* <Route path="/edit-product/:id" component={EditProduct} /> */}

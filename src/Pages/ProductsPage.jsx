@@ -4,6 +4,8 @@ import Footer from '../components/Footer';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../../firebase';
 import ProductComponent from '../components/ProductComponent';
+import SellerProductsPage from './SellerProductPage';
+import { useNavigate } from 'react-router-dom';
 
 
 const ProductsPage = () => {
@@ -84,11 +86,16 @@ const ProductsPage = () => {
     </div>
   );
   
+  const navigate = useNavigate()
+  const gotoSellerPage=()=>{
+    navigate('/sellerProducts')
+  }
   return (
     <>
       <Navbar/>
       <div className="min-h-screen bg-gray-50">
         <div className="container mx-auto px-4 py-8">
+          
           <div className="mb-6">
             
             
@@ -131,7 +138,9 @@ const ProductsPage = () => {
                   <option value="priceDesc">Price: High to Low</option>
                   <option value="name">Name</option>
                 </select>
+                
               </div>
+              <button onClick={gotoSellerPage} className="mt-1 px-4 py-3 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors">Go to SellerPage</button>
             </div>
             
             {/* Error Message */}
@@ -148,6 +157,7 @@ const ProductsPage = () => {
             )}
             
             {/* Products Display */}
+            
             {loading ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {[...Array(8)].map((_, index) => (
@@ -225,9 +235,11 @@ const ProductsPage = () => {
               </div>
             )}
           </div>
+          
         </div>
+        
       </div>
-      
+     
       <Footer/>
     </>
   );

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { collection, addDoc, getDocs, updateDoc, deleteDoc, doc, query, where } from 'firebase/firestore';
-import { db } from '../../firebase'; // Adjust path as needed
+import { collection, addDoc, getDocs, updateDoc, deleteDoc, doc, query, where , getDoc} from 'firebase/firestore';
+import { db } from '../../firebase'; 
 import { getAuth } from 'firebase/auth';
 
 const SellerProductManagement = () => {
@@ -19,6 +19,32 @@ const SellerProductManagement = () => {
   const [editId, setEditId] = useState(null);
   const [error, setError] = useState('');
   const [sellerId, setSellerId] = useState('');
+  const [sellerName, setSellerName] = useState('');
+
+  useEffect(() => {
+    const fetchSellerInfo = async () => {
+      try {
+        const auth = getAuth();
+        const user = auth.currentUser;
+        if (user) {
+          setSellerId(user.uid);
+          const sellerRef = doc(db, 'sellers', user.uid);
+          const sellerSnap = await getDoc(sellerRef);
+
+          if (sellerSnap.exists()) {
+            const sellerData = sellerSnap.data();
+            setSellerName(sellerData.businessName || sellerData.fullName || 'Unknown Seller'); // ✅ Prefill seller name
+          } else {
+            setSellerName('Unknown Seller');
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching seller info:', error);
+      }
+    };
+    fetchSellerInfo();
+  }, []);
+ 
   
   // Get current user ID from auth context
   useEffect(() => {
@@ -122,7 +148,8 @@ const SellerProductManagement = () => {
         category: category || '',
         imageUrl: imageUrl || '',
         inStock,
-        sellerId, // Important: Associate product with seller
+        sellerId,
+        sellerName,
         updatedAt: new Date(),
       };
 
@@ -285,6 +312,13 @@ const SellerProductManagement = () => {
                 required
               />
             </div>
+            <label className="block mb-1">Seller Name*</label>
+              <input
+                type="text"
+                className="w-full p-2 border rounded bg-gray-100"
+                value={sellerName} // ✅ Prefilled seller name
+                readOnly
+              />
             
             {/* Description */}
             <div className="md:col-span-2">
@@ -315,6 +349,7 @@ const SellerProductManagement = () => {
                     className="h-40 object-contain"
                   />
                 </div>
+                
               )}
             </div>
             
@@ -386,9 +421,9 @@ const SellerProductManagement = () => {
                   <p className="text-sm text-gray-600 mb-2">{product.category}</p>
                   
                   <div className="flex items-center gap-2 mb-2">
-                    <span className="font-semibold">${product.price}</span>
+                    <span className="font-semibold">₹{product.price}</span>
                     {product.originalPrice > product.price && (
-                      <span className="text-gray-500 line-through text-sm">${product.originalPrice}</span>
+                      <span className="text-gray-500 line-through text-sm">₹{product.originalPrice}</span>
                     )}
                   </div>
                   
