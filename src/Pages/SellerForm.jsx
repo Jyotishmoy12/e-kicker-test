@@ -3,7 +3,8 @@ import { auth, db } from '../../firebase';
 import { useNavigate } from 'react-router-dom';
 import { 
   signInWithEmailAndPassword, 
-  createUserWithEmailAndPassword 
+  createUserWithEmailAndPassword,
+  sendPasswordResetEmail
 } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
 import { toast } from 'react-toastify';
@@ -20,6 +21,8 @@ const SellerForm = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [resetEmail, setResetEmail] = useState('');
 
   // Multi-step form state
   const [registrationStep, setRegistrationStep] = useState(1);
@@ -314,6 +317,46 @@ const SellerForm = () => {
     }
   };
 
+  const handlePasswordReset = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setErrors({});
+
+    try {
+      // Validate email
+      await Yup.string().email('Invalid email').required('Email is required').validate(resetEmail);
+      
+      // Send password reset email
+      await sendPasswordResetEmail(auth, resetEmail);
+      
+      toast.success('Password reset email sent. Please check your inbox.');
+      setShowForgotPassword(false);
+      setResetEmail('');
+    } catch (error) {
+      if (error.name === 'ValidationError') {
+        setErrors({ resetEmail: error.message });
+      } else {
+        switch (error.code) {
+          case 'auth/user-not-found':
+            setErrors({ resetEmail: 'No account found with this email' });
+            break;
+          case 'auth/invalid-email':
+            setErrors({ resetEmail: 'Invalid email address' });
+            break;
+          case 'auth/too-many-requests':
+            setErrors({ resetEmail: 'Too many reset attempts. Please try again later.' });
+            break;
+          default:
+            toast.error('Password reset failed: ' + error.message);
+        }
+      }
+      console.error('Password reset error:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+
   // Render field with error message
   const renderField = (name, label, type = 'text', placeholder = '', autoComplete = '') => {
     const isPasswordField = type === 'password';
@@ -408,8 +451,54 @@ const SellerForm = () => {
               Register
             </button>
           </div>
+          {showForgotPassword && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+              <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-md">
+                <h2 className="text-2xl font-bold mb-4 text-gray-800">Reset Password</h2>
+                <form onSubmit={handlePasswordReset} className="space-y-4">
+                  <div>
+                    <label htmlFor="resetEmail" className="block mb-1 font-medium text-gray-700">
+                      Email Address
+                    </label>
+                    <input
+                      id="resetEmail"
+                      type="email"
+                      value={resetEmail}
+                      onChange={(e) => {
+                        setResetEmail(e.target.value);
+                        if (errors.resetEmail) {
+                          setErrors({ ...errors, resetEmail: undefined });
+                        }
+                      }}
+                      className={`w-full border rounded p-2 ${errors.resetEmail ? 'border-red-500' : 'border-gray-300'}`}
+                      placeholder="Enter your registered email"
+                    />
+                    {errors.resetEmail && (
+                      <p className="text-red-500 text-sm mt-1">{errors.resetEmail}</p>
+                    )}
+                  </div>
+                  <div className="flex justify-between">
+                    <button
+                      type="button"
+                      onClick={() => setShowForgotPassword(false)}
+                      className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-blue-400"
+                      disabled={isSubmitting}
+                    >
+                      {isSubmitting ? 'Sending...' : 'Reset Password'}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
 
-          {isLogin ? (
+{isLogin ? (
             // Seller Login Form
             <form onSubmit={handleLoginSubmit} className="space-y-4">
               <h2 className="text-2xl font-bold mb-6 text-gray-800">Seller Login</h2>
@@ -430,9 +519,13 @@ const SellerForm = () => {
                   </label>
                 </div>
                 <div className="text-sm">
-                  <a href="#" className="text-blue-600 hover:text-blue-800">
+                  <button
+                    type="button"
+                    onClick={() => setShowForgotPassword(true)}
+                    className="text-blue-600 hover:text-blue-800 focus:outline-none"
+                  >
                     Forgot password?
-                  </a>
+                  </button>
                 </div>
               </div>
               
