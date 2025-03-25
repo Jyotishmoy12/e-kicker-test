@@ -417,7 +417,7 @@ const SellerProductsPage = () => {
                    
                   </div>
                   <button
-                      className={`p-2 rounded transition-colors ${interestedProducts[product.id] ? 'bg-red-100 text-red-600' : 'bg-gray-100 hover:bg-gray-200 text-gray-600'}`}
+                      className={`p-2 rounded transition-colors ${interestedProducts[product.id] ? 'bg-red-100 text-red-600' : ' text-gray-600'}`}
                       onClick={() => setShowConfirmPopup(product.id)} // Open confirmation
                       disabled={interestedProducts[product.id]}
                     >
