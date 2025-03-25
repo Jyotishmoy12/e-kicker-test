@@ -8,19 +8,31 @@ import Footer from '../components/Footer';
 import Header from '../components/Navbar';
 import AdminOrders from '../components/AdminOrders';
 import SellerProfiles from '../components/SellersInfo';
+import ServiceProviderComponent from '../components/ServiceProviderComponent';
+import { 
+  Package, 
+  FileText, 
+  ShoppingCart, 
+  Users, 
+  Briefcase, 
+  Menu, 
+  X , 
+  LogOut
+} from 'lucide-react';
 
 const AdminDashboard = () => {
-  const [activeTab, setActiveTab] = useState('products'); // Default to "Manage Products"
+  const [activeTab, setActiveTab] = useState('products');
   const [user, setUser] = useState(null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
 
-  // **Persistent Admin Authentication Check**
+  // Authentication Check
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (loggedInUser) => {
       if (loggedInUser && loggedInUser.email === 'admfouekicker@gmail.com') {
         setUser(loggedInUser);
       } else {
-        navigate('/account'); // Redirect unauthorized users
+        navigate('/account');
       }
     });
     return () => unsubscribe();
@@ -35,11 +47,52 @@ const AdminDashboard = () => {
     }
   };
 
+  // Tab configuration with icons
+  const tabs = [
+    { 
+      key: 'products', 
+      label: 'Manage Products', 
+      icon: <Package size={20} /> 
+    },
+    { 
+      key: 'documents', 
+      label: 'Upload Docs', 
+      icon: <FileText size={20} /> 
+    },
+    { 
+      key: 'orders', 
+      label: 'Orders', 
+      icon: <ShoppingCart size={20} /> 
+    },
+    { 
+      key: 'sellers', 
+      label: 'Sellers', 
+      icon: <Users size={20} /> 
+    },
+    { 
+      key: 'service_providers', 
+      label: 'Service Providers', 
+      icon: <Briefcase size={20} /> 
+    }
+  ];
+
   return (
     <>
       <Header />
       <div className="container mx-auto px-4 py-6">
-        <div className="flex justify-between items-center mb-4">
+        {/* Mobile Header */}
+        <div className="flex justify-between items-center mb-4 lg:hidden">
+          <h1 className="text-2xl font-bold text-blue-800">Admin Dashboard</h1>
+          <button 
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className="text-blue-800"
+          >
+            {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
+        </div>
+
+        {/* Logout Button */}
+        <div className="hidden lg:flex justify-between items-center mb-4">
           <h1 className="text-3xl font-bold text-blue-800">Admin Dashboard</h1>
           <button
             onClick={handleLogout}
@@ -49,39 +102,65 @@ const AdminDashboard = () => {
           </button>
         </div>
 
-        {/* Tab Navigation */}
-        <div className="flex border-b mb-4">
-          <button
-            onClick={() => setActiveTab('products')}
-            className={`py-2 px-4 ${activeTab === 'products' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-600'}`}
-          >
-            Manage Products
-          </button>
-          <button
-            onClick={() => setActiveTab('documents')}
-            className={`py-2 px-4 ${activeTab === 'documents' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-600'}`}
-          >
-            Upload Documents
-          </button>
-          <button
-            onClick={() => setActiveTab('orders')}
-            className={`py-2 px-4 ${activeTab === 'orders' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-600'}`}
-          >
-            Orders Documents
-          </button>
-          <button
-            onClick={() => setActiveTab('sellers')}
-            className={`py-2 px-4 ${activeTab === 'sellers' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-600'}`}
-          >
-            Seller Profiles
-          </button>
-        </div>
+        <div className="flex flex-col lg:flex-row">
+          {/* Mobile & Desktop Navigation */}
+          <nav className={`
+            ${isMobileMenuOpen ? 'block' : 'hidden'} 
+            lg:block 
+            lg:w-1/5 
+            lg:mr-6 
+            mb-4 
+            lg:mb-0
+          `}>
+            <div className="bg-white shadow-md rounded-lg overflow-hidden">
+              {tabs.map((tab) => (
+                <button
+                  key={tab.key}
+                  onClick={() => {
+                    setActiveTab(tab.key);
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className={`
+                    w-full 
+                    flex 
+                    items-center 
+                    p-3 
+                    border-b 
+                    last:border-b-0 
+                    hover:bg-blue-50 
+                    transition 
+                    ${activeTab === tab.key 
+                      ? 'bg-blue-100 text-blue-600' 
+                      : 'text-gray-700'}
+                  `}
+                >
+                  <span className="mr-3">{tab.icon}</span>
+                  {tab.label}
+                </button>
+              ))}
+              
+              {/* Mobile Logout */}
+              <button
+                onClick={handleLogout}
+                className="lg:hidden w-full flex items-center p-3 text-red-500 hover:bg-red-50"
+              >
+                <span className="mr-3">
+                  <LogOut size={20} />
+                </span>
+                Logout
+              </button>
+            </div>
+          </nav>
 
-        {/* Tab Content */}
-        {activeTab === 'products' && <ProductManagement />}
-        {activeTab === 'documents' && <DocumentUpload />}
-        {activeTab === 'orders' && <AdminOrders />}
-        {activeTab === 'sellers' && <SellerProfiles />}
+          {/* Content Area */}
+          <main className="w-full lg:w-4/5 bg-white shadow-md rounded-lg p-4">
+            {activeTab === 'products' && <ProductManagement />}
+            {activeTab === 'documents' && <DocumentUpload />}
+            {activeTab === 'orders' && <AdminOrders />}
+            {activeTab === 'sellers' && <SellerProfiles />}
+            {activeTab === 'service_providers' && <ServiceProviderComponent />}
+          </main>
+        </div>
       </div>
       <Footer />
     </>

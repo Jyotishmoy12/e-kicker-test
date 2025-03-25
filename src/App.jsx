@@ -29,6 +29,9 @@ import SellerProfile from './Pages/SellerProfile';
 import SellerDashboard from './Pages/SellerDashboard';
 import SellerProductsPage from './Pages/SellerProductPage';
 import SellerProductDetailsPage from './Pages/SellerProductDetailsPage';
+import ServiceProvider from './Pages/ServiceProvider';
+import ServiceProviderList from './Pages/ServiceProviderList';
+import ServiceProviderProfile from './Pages/ServiceProviderProfile';
 import { AuthProvider } from './context/AuthContext';
 
 const App = () => {
@@ -73,6 +76,9 @@ const App = () => {
             <Route path="/seller-dashboard/:sellerId" element={<SellerDashboard />} />
             <Route path="/sellerProducts" element={<SellerProductsPage />} />
             <Route path="/product/:productId" element={<SellerProductDetailsPage />} />
+            <Route path="/service-provider" element={<ServiceProvider />} />
+            <Route path="/service-providers-list" element={<ServiceProviderList />} />
+            <Route path="/service-provider-profile" element={<ServiceProviderProfile />} />
 
 
             {/* <Route path="/edit-product/:id" component={EditProduct} /> */}

@@ -272,11 +272,11 @@ const Header = () => {
   }, [showSearchResults]);
 
   const navItems = [
-    { to: '/', label: 'Home' },
-    { to: '/r&d', label: 'Research' },
+    
     { to: '/account', label: 'Account' },
     { to: '/profile', label: "Profile" },
     { to: '/seller-form', label: 'Become a seller' },
+    {to: '/service-provider', label:'Service Provider'},
     
     ...(userEmail === 'admfouekicker@gmail.com' ? [{ to: '/admin', label: 'Admin' }] : []),
   ];
