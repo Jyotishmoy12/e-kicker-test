@@ -122,7 +122,7 @@ const ServiceProvider = () => {
       setMessage(errorMap[error.code] || error.message);
     }
   };
-
+  
   return (
     <>
       <Header/>
@@ -160,7 +160,7 @@ const ServiceProvider = () => {
                   <input 
                     type="text" 
                     name="service" 
-                    placeholder="Service Name" 
+                    placeholder="Service you provide" 
                     value={form.service}
                     onChange={handleChange} 
                     className={`w-full p-3 border rounded-lg ${errors.service ? 'border-red-500' : 'border-gray-300'}`} 
@@ -171,7 +171,7 @@ const ServiceProvider = () => {
                   <input 
                     type="text" 
                     name="location" 
-                    placeholder="Location" 
+                    placeholder="Please fill your pincode, district, state"   
                     value={form.location}
                     onChange={handleChange} 
                     className={`w-full p-3 border rounded-lg ${errors.location ? 'border-red-500' : 'border-gray-300'}`} 

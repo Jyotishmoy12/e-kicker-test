@@ -44,7 +44,7 @@ const ImageCarousel = () => {
       id: 4,
       srcSet: {
         sm: "image3.jpg", // 640px width
-        md: "image3.jpg", // 1024px width
+        md: "image3.jpg", //  width
         lg: "image3.jpg", // 1920px width
       },
       src: "image1.jpg", // Fallback
@@ -327,11 +327,9 @@ const ImageCarousel = () => {
   return (
     <div className="flex flex-col lg:flex-row w-full bg-gray-50 shadow-lg rounded-xl overflow-hidden">
       {/* Services Section */}
-      <div className="w-full lg:w-1/3 bg-white flex flex-col min-h-[400px] lg:h-[500px] overflow-hidden order-2 lg:order-1 shadow-inner">
-        <h2 className="text-xl md:text-2xl font-bold mb-2 md:mb-2 text-gray-800 px-4 md:px-6 pt-4 md:pt-6">
-          Our Services
-        </h2>
-        <div className="flex-1 flex flex-col justify-between px-4 md:px-6 pb-4 md:pb-6 space-y-3 md:space-y-0">
+      <div className="w-full lg:w-1/3  flex flex-col min-h-[400px] lg:h-[500px]  order-2 lg:order-1 shadow-inner">
+       
+        <div className="flex-1 flex flex-col justify-between px-4 md:px-6 pb-4 md:pb-6 space-y-3 md:space-y-0 py-11 my-2.5">
           {services.map((service, index) => (
             <Link 
               key={index}
