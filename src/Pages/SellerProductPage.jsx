@@ -3,7 +3,7 @@ import { collection, getDocs, query, orderBy, where, doc, getDoc, addDoc, setDoc
 import { db, auth } from '../../firebase';
 import { useNavigate } from 'react-router-dom';
 import { onAuthStateChanged } from 'firebase/auth';
-import { ShoppingCart, Circle } from 'lucide-react';
+import { ShoppingCart, Circle, MapPin } from 'lucide-react';
 import { toast } from 'react-toastify';
 import Header from "../components/Navbar"
 import Footer from "../components/Footer"
@@ -181,7 +181,13 @@ const SellerProductsPage = () => {
 
   // Get unique categories from all products
   const categories = ['all', ...new Set(products.map(product => product.category))];
-
+  const openGoogleMaps = (address) => {
+    // Encode the address for URL
+    const encodedAddress = encodeURIComponent(address);
+    
+    // Open Google Maps in a new tab
+    window.open(`https://www.google.com/maps/search/?api=1&query=${encodedAddress}`, '_blank');
+  };
   return (
     <>
       <Header />
@@ -317,9 +323,15 @@ const SellerProductsPage = () => {
                     <span className="text-sm font-medium text-blue-600">{product.sellerName}</span>
                   </div>
                   <div className="flex items-center gap-1 mb-2">
-                    <span className="text-sm text-gray-700">Seller Address:</span>
-                    <span className="text-sm font-medium text-blue-600">{product.sellerAddress}</span>
-                  </div>
+    <MapPin className="w-4 h-4 text-gray-500" />
+    <span 
+      className="text-sm font-medium text-blue-600 cursor-pointer hover:underline"
+      onClick={() => openGoogleMaps(product.sellerAddress)}
+      title="Open in Google Maps"
+    >
+      {product.sellerAddress}
+    </span>
+  </div>
 
                   <p className="text-sm text-gray-600 mb-2 capitalize">{product.category}</p>
 
