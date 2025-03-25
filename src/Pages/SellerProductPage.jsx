@@ -3,10 +3,11 @@ import { collection, getDocs, query, orderBy, where, doc, getDoc, addDoc, setDoc
 import { db, auth } from '../../firebase';
 import { useNavigate } from 'react-router-dom';
 import { onAuthStateChanged } from 'firebase/auth';
-import { ShoppingCart, Circle, MapPin } from 'lucide-react';
+import { ShoppingCart, Circle, MapPin,Heart } from 'lucide-react';
 import { toast } from 'react-toastify';
 import Header from "../components/Navbar"
 import Footer from "../components/Footer"
+import { trackProductInterest } from '../components/ProductInterestTracker';
 
 const SellerProductsPage = () => {
   const [products, setProducts] = useState([]);
@@ -18,7 +19,9 @@ const SellerProductsPage = () => {
   const [inStockOnly, setInStockOnly] = useState(false);
   const [user, setUser] = useState(null);
   const [addingToCart, setAddingToCart] = useState({});
-  const [searchBy, setSearchBy] = useState('name'); // New state for search type
+  const [searchBy, setSearchBy] = useState('name'); 
+  const [interestedProducts, setInterestedProducts] = useState({});
+  const [showConfirmPopup, setShowConfirmPopup] = useState(false);
   const navigate = useNavigate();
 
   // Check authentication status
@@ -34,7 +37,7 @@ const SellerProductsPage = () => {
   useEffect(() => {
     fetchProducts();
   }, []);
-  
+
   // Fetch all products from Firebase
   const fetchProducts = async () => {
     try {
@@ -115,6 +118,7 @@ const SellerProductsPage = () => {
         await addDoc(collection(db, 'users', user.uid, 'cart'), cartItemData);
         toast.success(`${product.productName} added to your cart`);
       }
+      await trackProductInterest(product, 'cart_add')
     } catch (error) {
       console.error('Error adding to cart:', error);
       toast.error('Failed to add item to cart. Please try again.');
@@ -184,10 +188,43 @@ const SellerProductsPage = () => {
   const openGoogleMaps = (address) => {
     // Encode the address for URL
     const encodedAddress = encodeURIComponent(address);
-    
+
     // Open Google Maps in a new tab
     window.open(`https://www.google.com/maps/search/?api=1&query=${encodedAddress}`, '_blank');
   };
+  const navigateToProductDetails = (product) => {
+    // Track product view before navigating
+    trackProductInterest(product, 'view_details');
+    navigate(`/product/${product.id}`);
+  };
+
+  const handleShowInterest = async (product) => {
+    if (!user) {
+      toast.warning('Please sign in to show interest');
+      navigate('/account');
+      return;
+    }
+
+    // Prevent multiple interest clicks
+    if (interestedProducts[product.id]) return;
+
+    try {
+      // Track product interest
+      const tracked = await trackProductInterest(product, 'show_interest');
+      
+      if (tracked) {
+        // Update local state to prevent multiple interests
+        setInterestedProducts(prev => ({
+          ...prev,
+          [product.id]: true
+        }));
+      }
+    } catch (error) {
+      console.error('Error showing interest:', error);
+    }
+  };
+
+
   return (
     <>
       <Header />
@@ -323,15 +360,15 @@ const SellerProductsPage = () => {
                     <span className="text-sm font-medium text-blue-600">{product.sellerName}</span>
                   </div>
                   <div className="flex items-center gap-1 mb-2">
-    <MapPin className="w-4 h-4 text-gray-500" />
-    <span 
-      className="text-sm font-medium text-blue-600 cursor-pointer hover:underline"
-      onClick={() => openGoogleMaps(product.sellerAddress)}
-      title="Open in Google Maps"
-    >
-      {product.sellerAddress}
-    </span>
-  </div>
+                    <MapPin className="w-4 h-4 text-gray-500" />
+                    <span
+                      className="text-sm font-medium text-blue-600 cursor-pointer hover:underline"
+                      onClick={() => openGoogleMaps(product.sellerAddress)}
+                      title="Open in Google Maps"
+                    >
+                      {product.sellerAddress}
+                    </span>
+                  </div>
 
                   <p className="text-sm text-gray-600 mb-2 capitalize">{product.category}</p>
 
@@ -349,12 +386,12 @@ const SellerProductsPage = () => {
                       </span>
                     )}
                   </div>
-                 {/* Action Buttons */}
+                  {/* Action Buttons */}
                   <div className="flex gap-2">
                     {/* View Details Button */}
                     <button
                       className="flex-1 bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition-colors"
-                      onClick={() => navigate(`/product/${product.id}`)}
+                      onClick={() => navigateToProductDetails(product)}
                     >
                       View Details
                     </button>
@@ -377,7 +414,31 @@ const SellerProductsPage = () => {
                         </>
                       )}
                     </button>
+                   
                   </div>
+                  <button
+                      className={`p-2 rounded transition-colors ${interestedProducts[product.id] ? 'bg-red-100 text-red-600' : 'bg-gray-100 hover:bg-gray-200 text-gray-600'}`}
+                      onClick={() => setShowConfirmPopup(product.id)} // Open confirmation
+                      disabled={interestedProducts[product.id]}
+                    >
+                      <Heart className={`w-5 h-5 ${interestedProducts[product.id] ? 'fill-current' : 'stroke-current'}`} />
+                    </button>
+                    {showConfirmPopup === product.id && (
+                      <div className="absolute ml-2 bg-white shadow-lg border p-3 rounded-md z-50 w-56 text-center">
+                        <p className="text-sm text-gray-700 mb-3">Are you sure you want to reserve this product for offline purchase?</p>
+                        <div className="flex justify-center gap-2">
+                          <button className="bg-red-600 text-white px-3 py-1 rounded text-sm" onClick={() => {
+                            handleShowInterest(product);
+                            setShowConfirmPopup(null);
+                          }}>
+                            Yes, Reserve
+                          </button>
+                          <button className="bg-gray-300 text-gray-700 px-3 py-1 rounded text-sm " onClick={() => setShowConfirmPopup(null)}>
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    )}
                 </div>
               </div>
             ))}

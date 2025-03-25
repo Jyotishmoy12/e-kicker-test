@@ -7,6 +7,7 @@ import { CheckCircle, AlertCircle,  } from 'lucide-react';
 import Header from '../components/Navbar';
 import Footer from '../components/Footer';
 import SellerProductManagement from '../components/SellerProductManagement';
+import ProductInterestTracker from '../components/ProductInterestTracker';
 
 const SellerDashboard = () => {
   const [sellerInfo, setSellerInfo] = useState(null);
@@ -102,7 +103,9 @@ const SellerDashboard = () => {
           </div>
         )}
       </div>
+      
       <SellerProductManagement/>
+      <ProductInterestTracker sellerId={sellerId} />
       </div>
       <Footer/>
     </>
