@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { collection, getDocs, updateDoc, doc, getDoc } from 'firebase/firestore';
+import { collection, getDocs, updateDoc, doc, getDoc ,query, where, deleteDoc} from 'firebase/firestore';
 import { db, auth } from '../../firebase';
 import { toast } from 'react-toastify';
-import { CheckCircle, XCircle, User, Mail, Phone, FileText, ClipboardCheck, Eye } from 'lucide-react';
+import { CheckCircle, XCircle, User, Mail, Phone, FileText, ClipboardCheck, Eye, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { FaRegAddressCard } from "react-icons/fa6";
 
 const SellerProfiles = () => {
   const [sellers, setSellers] = useState([]);
@@ -103,6 +104,63 @@ const SellerProfiles = () => {
     
     // Navigate to seller profile
     navigate(`/seller-profile/${sellerId}`);
+  };
+
+  const handleDeleteSeller = async (sellerId, sellerEmail) => {
+    const confirmDelete = window.confirm(
+      "Are you sure you want to delete this seller? This will permanently remove all associated data including products, orders, and profile."
+    );
+    
+    if (!confirmDelete) return;
+  
+    try {
+      // Ensure current user is admin
+      const currentUser = auth.currentUser;
+      if (!currentUser || currentUser.email !== "admfouekicker@gmail.com") {
+        toast.error("Only admin can perform this action");
+        return;
+      }
+  
+      // Delete products associated with this seller
+      const productsQuery = query(
+        collection(db, 'products'), 
+        where('sellerId', '==', sellerId)
+      );
+      const productsSnapshot = await getDocs(productsQuery);
+      const productDeletionPromises = productsSnapshot.docs.map(productDoc => 
+        deleteDoc(productDoc.ref)
+      );
+      await Promise.all(productDeletionPromises);
+  
+      // Delete orders associated with this seller
+      const ordersQuery = query(
+        collection(db, 'orders'), 
+        where('sellerId', '==', sellerId)
+      );
+      const ordersSnapshot = await getDocs(ordersQuery);
+      const orderDeletionPromises = ordersSnapshot.docs.map(orderDoc => 
+        deleteDoc(orderDoc.ref)
+      );
+      await Promise.all(orderDeletionPromises);
+  
+      // Delete seller document
+      const sellerRef = doc(db, 'sellers', sellerId);
+      await deleteDoc(sellerRef);
+  
+      // Update UI
+      setSellers(prev => prev.filter(seller => seller.id !== sellerId));
+  
+      toast.success("Seller and all associated data have been deleted successfully.");
+    } catch (error) {
+      console.error("Error deleting seller:", error);
+      
+      // More detailed error handling
+      if (error.code === 'permission-denied') {
+        toast.error("Permission denied. Ensure you are logged in as admin.");
+      } else {
+        toast.error("Failed to delete seller. Please try again or contact support.");
+      }
+    }
   };
 
   if (!isAdmin) {
@@ -206,6 +264,13 @@ const SellerProfiles = () => {
                           <div className="font-medium">{seller.gstNumber}</div>
                         </div>
                       </div>
+                      <div className="flex items-start">
+                      <FaRegAddressCard className="h-5 w-5 text-gray-400 mt-0.5 mr-2" />
+                      <div>
+                          <div className="text-sm text-gray-500">Seller Address</div>
+                          <div className="font-medium">{seller.address}</div>
+                        </div>
+                        </div>
                     </div>
 
                     {/* Registration date */}
@@ -249,6 +314,13 @@ const SellerProfiles = () => {
                         <Eye className="h-4 w-4 mr-2" />
                         View Profile
                       </button>
+                      <button 
+    onClick={() => handleDeleteSeller(seller.id, seller.email)}
+    className="flex items-center px-4 py-2 rounded-md text-white bg-red-500 hover:bg-red-600 transition-colors"
+  >
+    <Trash2 className="h-4 w-4 mr-2" />
+    Delete Seller
+  </button>
                     </div>
                   </div>
                 </div>

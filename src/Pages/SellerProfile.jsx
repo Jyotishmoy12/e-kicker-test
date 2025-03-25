@@ -247,6 +247,10 @@ const SellerProfile = () => {
                   <label className="block text-sm font-medium text-gray-500">Branch Name</label>
                   <p className="text-gray-800">{sellerInfo.branchName}</p>
                 </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-500">Seller Address</label>
+                  <p className="text-gray-800">{sellerInfo.address}</p>
+                </div>
               </div>
             </div>
           </div>

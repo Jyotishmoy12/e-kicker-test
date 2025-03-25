@@ -18,6 +18,7 @@ const SellerProductsPage = () => {
   const [inStockOnly, setInStockOnly] = useState(false);
   const [user, setUser] = useState(null);
   const [addingToCart, setAddingToCart] = useState({});
+  const [searchBy, setSearchBy] = useState('name'); // New state for search type
   const navigate = useNavigate();
 
   // Check authentication status
@@ -33,7 +34,7 @@ const SellerProductsPage = () => {
   useEffect(() => {
     fetchProducts();
   }, []);
-
+  
   // Fetch all products from Firebase
   const fetchProducts = async () => {
     try {
@@ -53,7 +54,8 @@ const SellerProductsPage = () => {
       const productsData = querySnapshot.docs.map(docSnap => ({
         id: docSnap.id,
         ...docSnap.data(),
-        sellerName: docSnap.data().sellerName || 'Unknown Seller' // Ensures `sellerName` is always available
+        sellerName: docSnap.data().sellerName || 'Unknown Seller', // Ensures `sellerName` is always available
+        sellerAddress: docSnap.data().sellerAddress || 'Unknown Address'
       }));
 
       setProducts(productsData);
@@ -65,7 +67,7 @@ const SellerProductsPage = () => {
     }
   };
 
-  // Handle adding product to cart
+  // Handle adding product to cart (unchanged)
   const addToCart = async (product) => {
     if (!user) {
       toast.warning('Please sign in to add items to your cart');
@@ -106,6 +108,7 @@ const SellerProductsPage = () => {
           quantity: 1,
           sellerId: product.sellerId,
           sellerName: product.sellerName,
+          sellerAddress: product.sellerAddress,
           addedAt: new Date()
         };
 
@@ -128,9 +131,29 @@ const SellerProductsPage = () => {
         return false;
       }
 
-      // Filter by search term
-      if (searchTerm && !product.productName.toLowerCase().includes(searchTerm.toLowerCase())) {
-        return false;
+      // Flexible search based on search type
+      if (searchTerm) {
+        const searchTermLower = searchTerm.toLowerCase();
+        switch (searchBy) {
+          case 'name':
+            // Search by product name
+            if (!product.productName.toLowerCase().includes(searchTermLower)) {
+              return false;
+            }
+            break;
+          case 'address':
+            // Search by seller address
+            if (!product.sellerAddress.toLowerCase().includes(searchTermLower)) {
+              return false;
+            }
+            break;
+          case 'seller':
+            // Search by seller name
+            if (!product.sellerName.toLowerCase().includes(searchTermLower)) {
+              return false;
+            }
+            break;
+        }
       }
 
       // Filter by stock status
@@ -175,16 +198,27 @@ const SellerProductsPage = () => {
         {/* Filters and Search */}
         <div className="bg-white p-4 rounded shadow mb-6">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            {/* Search */}
+            {/* Search with Dropdown */}
             <div>
               <label className="block mb-1 text-sm font-medium">Search Products</label>
-              <input
-                type="text"
-                placeholder="Search by name..."
-                className="w-full p-2 border rounded"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
+              <div className="flex">
+                <select
+                  className="p-2 border rounded-l"
+                  value={searchBy}
+                  onChange={(e) => setSearchBy(e.target.value)}
+                >
+                  <option value="name">By Product Name</option>
+                  <option value="address">By Seller Address</option>
+                  <option value="seller">By Seller Name</option>
+                </select>
+                <input
+                  type="text"
+                  placeholder={`Search by ${searchBy}...`}
+                  className="w-full p-2 border-y border-r rounded-r"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
             </div>
 
             {/* Category Filter */}
@@ -233,7 +267,7 @@ const SellerProductsPage = () => {
           </div>
         </div>
 
-        {/* Products Display */}
+        {/* Rest of the code remains the same as in the previous implementation */}
         {loading ? (
           <div className="text-center py-10">
             <p className="text-gray-500">Loading products...</p>
@@ -281,6 +315,10 @@ const SellerProductsPage = () => {
                   <div className="flex items-center gap-1 mb-2">
                     <span className="text-sm text-gray-700">Seller:</span>
                     <span className="text-sm font-medium text-blue-600">{product.sellerName}</span>
+                  </div>
+                  <div className="flex items-center gap-1 mb-2">
+                    <span className="text-sm text-gray-700">Seller Address:</span>
+                    <span className="text-sm font-medium text-blue-600">{product.sellerAddress}</span>
                   </div>
 
                   <p className="text-sm text-gray-600 mb-2 capitalize">{product.category}</p>

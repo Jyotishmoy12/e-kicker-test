@@ -20,6 +20,32 @@ const SellerProductManagement = () => {
   const [error, setError] = useState('');
   const [sellerId, setSellerId] = useState('');
   const [sellerName, setSellerName] = useState('');
+  const [sellerAddress, setSellerAddress] = useState('');
+
+
+  useEffect(() => {
+    const fetchSellerInfo = async () => {
+      try {
+        const auth = getAuth();
+        const user = auth.currentUser;
+        if (user) {
+          setSellerId(user.uid);
+          const sellerRef = doc(db, 'sellers', user.uid);
+          const sellerSnap = await getDoc(sellerRef);
+
+          if (sellerSnap.exists()) {
+            const sellerData = sellerSnap.data();
+            setSellerAddress(sellerData.businessName || sellerData.address || 'Unknown Seller'); // ✅ Prefill seller name
+          } else {
+            setSellerAddress('Did not provide address');
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching seller address:', error);
+      }
+    };
+    fetchSellerInfo();
+  }, []);
 
   useEffect(() => {
     const fetchSellerInfo = async () => {
@@ -44,6 +70,7 @@ const SellerProductManagement = () => {
     };
     fetchSellerInfo();
   }, []);
+  
  
   
   // Get current user ID from auth context
@@ -150,6 +177,7 @@ const SellerProductManagement = () => {
         inStock,
         sellerId,
         sellerName,
+        sellerAddress,
         updatedAt: new Date(),
       };
 
@@ -312,6 +340,7 @@ const SellerProductManagement = () => {
                 required
               />
             </div>
+            <div>
             <label className="block mb-1">Seller Name*</label>
               <input
                 type="text"
@@ -319,6 +348,16 @@ const SellerProductManagement = () => {
                 value={sellerName} // ✅ Prefilled seller name
                 readOnly
               />
+              </div>
+              <div>
+              <label className="block mb-1">Seller Address*</label>
+              <input
+                type="text"
+                className="w-full p-2 border rounded bg-gray-100"
+                value={sellerAddress} 
+                readOnly
+              />
+              </div>
             
             {/* Description */}
             <div className="md:col-span-2">

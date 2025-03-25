@@ -42,7 +42,8 @@ const SellerForm = () => {
     ifscCode: '',
     branchName: '',
     gstNumber: '',
-    panNumber: ''
+    panNumber: '',
+    address:''
   });
 
   // Define validation schemas
@@ -67,14 +68,15 @@ const SellerForm = () => {
     branchName: Yup.string().required('Branch name is required'),
     gstNumber: Yup.string().required('GST number is required'),
     panNumber: Yup.string().required('PAN number is required')
-      .matches(/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/, 'Invalid PAN number format')
+      .matches(/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/, 'Invalid PAN number format'),
+    address: Yup.string().required('Address is required')
   });
 
   // Define fields for each step of registration
   const stepFields = {
     1: ['fullName', 'email', 'phoneNumber', 'password', 'confirmPassword'],
     2: ['accountNumber', 'ifscCode', 'branchName'],
-    3: ['gstNumber', 'panNumber']
+    3: ['gstNumber', 'panNumber', 'address']
   };
 
   // Check password strength
@@ -262,7 +264,8 @@ const SellerForm = () => {
         branchName: sellerData.branchName,
         gstNumber: sellerData.gstNumber,
         panNumber: sellerData.panNumber,
-        verified: false, // default verification status
+        verified: false, 
+        address: sellerData.address,
         createdAt: new Date()
       });
       
@@ -476,6 +479,7 @@ const SellerForm = () => {
                   {renderField('phoneNumber', 'Phone Number', 'tel', 'Enter 10-digit phone number', 'tel')}
                   {renderField('password', 'Password', 'password', 'Create a password', 'new-password')}
                   {renderField('confirmPassword', 'Confirm Password', 'password', 'Confirm your password', 'new-password')}
+                  {renderField('address', 'Address', 'address', 'Enter your address')}
                 </div>
               )}
               
