@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { db } from "../../firebase";
-import { collection, getDocs, query, where } from "firebase/firestore";
+import { collection, getDocs, doc , updateDoc} from "firebase/firestore";
 import Header from "../components/Navbar";
 import Footer from "../components/Footer";
 import { 
@@ -11,8 +11,37 @@ import {
   Mail, 
   Briefcase, 
   ChevronDown, 
-  ChevronUp 
+  ChevronUp,
+  Star
 } from "lucide-react";
+import { toast } from "react-toastify";
+import {auth} from "../../firebase";
+
+const StarRating = ({ rating, providerId, onRateProvider }) => {
+  const [hoverRating, setHoverRating] = useState(0);
+
+  const handleRating = (selectedRating) => {
+    onRateProvider(providerId, selectedRating);
+  };
+  return (
+    <div className="flex">
+      {[1, 2, 3, 4, 5].map((star) => (
+        <Star
+          key={star}
+          size={20}
+          className={`cursor-pointer transition-colors ${
+            (hoverRating || rating) >= star 
+              ? 'text-yellow-500 fill-current' 
+              : 'text-gray-300'
+          }`}
+          onMouseEnter={() => setHoverRating(star)}
+          onMouseLeave={() => setHoverRating(0)}
+          onClick={() => handleRating(star)}
+        />
+      ))}
+    </div>
+  );
+};
 
 const ServiceProviderList = () => {
   const [serviceProviders, setServiceProviders] = useState([]);
@@ -36,7 +65,9 @@ const ServiceProviderList = () => {
         const querySnapshot = await getDocs(collection(db, "service_providers"));
         const providers = querySnapshot.docs.map(doc => ({ 
           id: doc.id, 
-          ...doc.data() 
+          ...doc.data(),
+          rating: doc.data().rating || 0,
+          ratingCount: doc.data().ratingCount || 0
         }));
         
         setServiceProviders(providers);
@@ -56,6 +87,61 @@ const ServiceProviderList = () => {
 
     fetchServiceProviders();
   }, []);
+
+  const handleRateProvider = async (providerId, selectedRating) => {
+    try {
+      // Find the current provider
+      const providerToUpdate = serviceProviders.find(p => p.id === providerId);
+      
+      if (providerToUpdate) {
+        // Check if user is authenticated
+        if (!auth.currentUser) {
+          toast.error("You must be logged in to rate a service provider");
+          return;
+        }
+
+        // Calculate new average rating
+        const currentRating = providerToUpdate.rating || 0;
+        const currentRatingCount = providerToUpdate.ratingCount || 0;
+        
+        const newRatingCount = currentRatingCount + 1;
+        const newAverageRating = ((currentRating * currentRatingCount) + selectedRating) / newRatingCount;
+
+        // Update Firestore document
+        const providerRef = doc(db, "service_providers", providerId);
+        await updateDoc(providerRef, {
+          rating: newAverageRating,
+          ratingCount: newRatingCount
+        });
+
+        // Update local state
+        setServiceProviders(prevProviders => 
+          prevProviders.map(provider => 
+            provider.id === providerId 
+              ? { 
+                  ...provider, 
+                  rating: newAverageRating, 
+                  ratingCount: newRatingCount 
+                } 
+              : provider
+          )
+        );
+
+        // Notify user of successful rating
+        toast.success("Thank you for your rating!");
+      }
+    } catch (error) {
+      console.error("Error rating provider:", error);
+      
+      // Provide more specific error feedback
+      if (error.code === 'permission-denied') {
+        toast.error("You do not have permission to rate this provider. Please log in.");
+      } else {
+        toast.error("Failed to submit rating. Please try again.");
+      }
+    }
+  };
+
 
   // Sorting function
   const sortedProviders = useMemo(() => {
@@ -174,17 +260,16 @@ const ServiceProviderList = () => {
                     { key: 'email', label: 'Email', icon: <Mail size={16} /> },
                     { key: 'phone', label: 'Phone', icon: <Phone size={16} /> },
                     { key: 'service', label: 'Service', icon: <Briefcase size={16} /> },
-                    { key: 'location', label: 'Location', icon: <MapPin size={16} /> }
+                    { key: 'location', label: 'Location', icon: <MapPin size={16} /> },
+                    { label: 'Rating', icon: <Star size={16} /> }
                   ].map(({ key, label, icon }) => (
                     <th 
-                      key={key} 
-                      onClick={() => handleSort(key)}
-                      className="py-3 px-4 text-left cursor-pointer hover:bg-blue-100 transition"
+                      key={key || label} 
+                      className="py-3 px-4 text-left"
                     >
                       <div className="flex items-center gap-2">
                         {icon}
                         {label}
-                        {renderSortIcon(key)}
                       </div>
                     </th>
                   ))}
@@ -201,6 +286,19 @@ const ServiceProviderList = () => {
                     <td className="py-3 px-4">{provider.phone}</td>
                     <td className="py-3 px-4">{provider.service}</td>
                     <td className="py-3 px-4">{provider.location}</td>
+                    <td className="py-3 px-4">
+                      <div className="flex flex-col">
+                        <StarRating 
+                          rating={provider.rating} 
+                          providerId={provider.id}
+                          onRateProvider={handleRateProvider}
+                        />
+                        <span className="text-sm text-gray-500 mt-1">
+                          {provider.rating ? `${provider.rating.toFixed(1)}/5` : 'No ratings'}
+                          {provider.ratingCount > 0 && ` (${provider.ratingCount} ratings)`}
+                        </span>
+                      </div>
+                    </td>
                   </tr>
                 ))}
               </tbody>

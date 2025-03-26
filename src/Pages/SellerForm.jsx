@@ -69,7 +69,12 @@ const SellerForm = () => {
     accountNumber: Yup.string().required('Account number is required'),
     ifscCode: Yup.string().required('IFSC code is required'),
     branchName: Yup.string().required('Branch name is required'),
-    gstNumber: Yup.string().required('GST number is required'),
+    gstNumber: Yup.string()
+    .required('GST number is required')
+    .matches(
+      /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}[Z]{1}[0-9A-Z]{1}$/,
+      'Invalid GST number format'
+    ),
     panNumber: Yup.string().required('PAN number is required')
       .matches(/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/, 'Invalid PAN number format'),
     address: Yup.string().required('Address is required')
