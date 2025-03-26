@@ -128,13 +128,7 @@ const OrderConfirmation = () => {
             <p key={index}>{item.name} - {item.quantity} x ₹{item.price}</p>
           ))}
 
-          <button 
-            onClick={generatePDF} 
-            className="mt-6 w-full py-3 font-bold bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-            aria-label="Download Invoice"
-          >
-            Download Invoice (PDF)
-          </button>
+         
         </div>
       </div>
     </>

@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { ShoppingCart, Menu, X, Search, ArrowLeft, History, Bookmark } from 'lucide-react';
+import { ShoppingCart, Menu, X, Search, ArrowLeft, History, Bookmark, ChevronDown } from 'lucide-react';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { getFirestore, collection, query, where, getDocs } from 'firebase/firestore';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isBeAPartDropdownOpen, setIsBeAPartDropdownOpen] = useState(false);
   const [userEmail, setUserEmail] = useState(localStorage.getItem('userEmail') || null);
   const [cartCount, setCartCount] = useState(0);
   const [searchTerm, setSearchTerm] = useState('');
@@ -22,12 +23,30 @@ const Header = () => {
   const searchRef = useRef(null);
   const searchDebounceRef = useRef(null);
   const searchInputRef = useRef(null);
+  const beAPartDropdownRef = useRef(null);
 
   const location = useLocation();
   const auth = getAuth();
   const db = getFirestore();
 
   const searchVisibleRoutes = ['/', '/products'];
+
+  //Add click outside handler for Be a Part dropdown
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        beAPartDropdownRef.current &&
+        !beAPartDropdownRef.current.contains(event.target)
+      ) {
+        setIsBeAPartDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -272,12 +291,11 @@ const Header = () => {
   }, [showSearchResults]);
 
   const navItems = [
-    
+
     { to: '/account', label: 'Account' },
     { to: '/profile', label: "Profile" },
-    { to: '/seller-form', label: 'Become a seller' },
-    {to: '/service-provider', label:'Service Provider'},
-    
+
+
     ...(userEmail === 'admfouekicker@gmail.com' ? [{ to: '/admin', label: 'Admin' }] : []),
   ];
 
@@ -554,15 +572,55 @@ const Header = () => {
                 <Link
                   to={to}
                   className={`text-blue-900 font-bold tracking-wide 
-                              hover:text-blue-600 transition-colors duration-300 
-                              relative pb-1 group ${location.pathname === to ? 'text-blue-600' : ''}`}
+                            hover:text-blue-600 transition-colors duration-300 
+                            relative pb-1 group ${location.pathname === to ? 'text-blue-600' : ''}`}
                 >
                   {label}
                   <span className={`absolute bottom-0 left-0 h-1 bg-blue-600 
-                                   transition-all duration-300 ${location.pathname === to ? 'w-full' : 'w-0 group-hover:w-full'}`}></span>
+                                 transition-all duration-300 ${location.pathname === to ? 'w-full' : 'w-0 group-hover:w-full'}`}></span>
                 </Link>
               </li>
             ))}
+
+            {/* Be a Part Dropdown */}
+            <li className="relative" ref={beAPartDropdownRef}>
+              <button
+                onClick={() => setIsBeAPartDropdownOpen(!isBeAPartDropdownOpen)}
+                className={`text-blue-900 font-bold tracking-wide 
+                          hover:text-blue-600 transition-colors duration-300 
+                          relative pb-1 group flex items-center`}
+              >
+                Be a Part
+                <ChevronDown
+                  className={`ml-1 transition-transform duration-300 
+                            ${isBeAPartDropdownOpen ? 'rotate-180' : ''}`}
+                  size={20}
+                />
+              </button>
+
+              {isBeAPartDropdownOpen && (
+                <div className="absolute top-full left-0 mt-2 w-48 bg-white 
+                              rounded-lg shadow-lg border border-blue-100 
+                              animate-fade-in z-50">
+                  <Link
+                    to="/seller-form"
+                    onClick={() => setIsBeAPartDropdownOpen(false)}
+                    className="block px-4 py-2 text-blue-900 
+                              hover:bg-blue-50 transition-colors"
+                  >
+                    Become a Seller
+                  </Link>
+                  <Link
+                    to="/service-provider"
+                    onClick={() => setIsBeAPartDropdownOpen(false)}
+                    className="block px-4 py-2 text-blue-900 
+                              hover:bg-blue-50 transition-colors border-t border-blue-100"
+                  >
+                    Service Provider
+                  </Link>
+                </div>
+              )}
+            </li>
             <li>
               <Link
                 to="/cart"
@@ -616,6 +674,28 @@ const Header = () => {
                   </Link>
                 </li>
               ))}
+              <li>
+                <Link
+                  to="/seller-form"
+                  onClick={toggleMenu}
+                  className="text-blue-900 font-bold
+                      transition-colors flex items-center 
+                     text-base relative group"
+                >
+                  Become a Seller
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/service-provider"
+                  onClick={toggleMenu}
+                  className=" text-blue-900 font-bold
+                      transition-colors flex items-center 
+                     text-base relative group"
+                >
+                  Service Provider
+                </Link>
+              </li>
               <li>
                 <Link
                   to="/cart"
