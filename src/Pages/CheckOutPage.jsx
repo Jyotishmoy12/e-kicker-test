@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { auth, db } from "../../firebase";
 import { onAuthStateChanged } from "firebase/auth";
 import { collection, getDocs, deleteDoc, doc, addDoc } from "firebase/firestore";
-import { ShoppingBag, CreditCard, ChevronRight, ChevronDown, CheckCircle, X, Info, User, Home, Phone } from "lucide-react";
+import { ShoppingBag, CreditCard, ChevronRight, ChevronDown, CheckCircle, X, Info, User, Home, Phone , DollarSign} from "lucide-react";
 import Navbar from "../components/Navbar";
 
 const CheckoutPage = () => {
@@ -17,6 +17,7 @@ const CheckoutPage = () => {
   const [formErrors, setFormErrors] = useState({});
   const [showItemDetails, setShowItemDetails] = useState(null);
   const [orderSuccess, setOrderSuccess] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState(null);
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
@@ -97,6 +98,10 @@ const CheckoutPage = () => {
     if (formData.email && !/\S+@\S+\.\S+/.test(formData.email)) {
       errors.email = "Please enter a valid email address";
     }
+    
+    if (!paymentMethod) {
+      errors.paymentMethod = "Please select a payment method";
+    }
 
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
@@ -117,7 +122,35 @@ const CheckoutPage = () => {
       }));
     }
   };
+  const handleCashOnDelivery =async () => {
+    if(!validateForm()){
+      return;
+    }
+    const totalAmount = calculateTotal();
 
+    try {
+      const orderData ={
+        items: cartItems,
+        amount: totalAmount,
+        shipping: formData,
+        paymentMethod: "Cash on Delivery",
+        timestamp: new Date(),
+      };
+      const orderRef = await addDoc(collection(db, "users", user.uid, "orders"), orderData);
+      setOrderId(orderRef.id);
+      const cartCollection = collection(db, "users", user.uid, "cart");
+      const cartSnapshot = await getDocs(cartCollection);
+      for (const cartDoc of cartSnapshot.docs) {
+        await deleteDoc(doc(db, "users", user.uid, "cart", cartDoc.id));
+      }
+
+      setOrderSuccess(true);
+      setShowWhatsAppModal(true);
+
+    } catch (error) {
+      console.error("Error saving order:", error);
+    }
+  }
   const handlePayment = async () => {
     if (!validateForm()) {
       return;
@@ -138,6 +171,7 @@ const CheckoutPage = () => {
             amount: totalAmount,
             shipping: formData,
             paymentId: response.razorpay_payment_id,
+            paymentMethod: 'Online Payment',
             timestamp: new Date(),
           };
 
@@ -174,6 +208,7 @@ const CheckoutPage = () => {
     const adminNumber = "+919395416435";
     let message = `🛍 *New Order Received!*\n\n`;
     message += `📦 *Order ID:* ${orderId}\n`;
+    message += `💳 *Payment Method:* ${paymentMethod}\n`;
     message += `👤 *Customer:* ${formData.firstName} ${formData.lastName}\n`;
     message += `📞 *Phone:* ${formData.phoneNumber}\n`;
     message += `📍 *Address:* ${formData.address}, ${formData.city}, ${formData.state} - ${formData.zipCode}\n`;
@@ -190,6 +225,7 @@ const CheckoutPage = () => {
 
     window.open(whatsappUrl, "_blank");
   };
+
 
   if (loading) {
     return (
@@ -430,7 +466,52 @@ const CheckoutPage = () => {
                     </div>
                   </div>
 
-                  <div className="pt-4">
+                  <div className="mb-6">
+                  <h3 className="text-lg font-medium text-gray-800 mb-4 flex items-center">
+                    <CreditCard className="w-5 h-5 mr-2 text-indigo-600" />
+                    Payment Method
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div 
+                      onClick={() => setPaymentMethod('Online Payment')}
+                      className={`p-4 border rounded-lg cursor-pointer flex items-center justify-between ${
+                        paymentMethod === 'Online Payment' 
+                        ? 'border-indigo-600 bg-indigo-50' 
+                        : 'border-gray-300 hover:border-gray-400'
+                      }`}
+                    >
+                      <div className="flex items-center">
+                        <CreditCard className="w-6 h-6 mr-3 text-indigo-600" />
+                        <span className="font-medium">Online Payment</span>
+                      </div>
+                      {paymentMethod === 'Online Payment' && (
+                        <CheckCircle className="w-5 h-5 text-indigo-600" />
+                      )}
+                    </div>
+                    <div 
+                      onClick={() => setPaymentMethod('Cash on Delivery')}
+                      className={`p-4 border rounded-lg cursor-pointer flex items-center justify-between ${
+                        paymentMethod === 'Cash on Delivery' 
+                        ? 'border-indigo-600 bg-indigo-50' 
+                        : 'border-gray-300 hover:border-gray-400'
+                      }`}
+                    >
+                      <div className="flex items-center">
+                        <DollarSign className="w-6 h-6 mr-3 text-green-600" />
+                        <span className="font-medium">Cash on Delivery</span>
+                      </div>
+                      {paymentMethod === 'Cash on Delivery' && (
+                        <CheckCircle className="w-5 h-5 text-indigo-600" />
+                      )}
+                    </div>
+                  </div>
+                  {formErrors.paymentMethod && (
+                    <p className="mt-1 text-sm text-red-500">{formErrors.paymentMethod}</p>
+                  )}
+                </div>
+
+                <div className="pt-4">
+                  {paymentMethod === 'Online Payment' ? (
                     <button 
                       type="button" 
                       onClick={handlePayment} 
@@ -439,7 +520,17 @@ const CheckoutPage = () => {
                       <CreditCard className="w-5 h-5 mr-2" />
                       Pay ₹{calculateTotal().toFixed(2)} with Razorpay
                     </button>
-                  </div>
+                  ) : (
+                    <button 
+                      type="button" 
+                      onClick={handleCashOnDelivery} 
+                      className="w-full py-3 font-bold bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center"
+                    >
+                      <DollarSign className="w-5 h-5 mr-2" />
+                      Confirm Cash on Delivery Order
+                    </button>
+                  )}
+                </div>
                 </form>
               </div>
             </div>

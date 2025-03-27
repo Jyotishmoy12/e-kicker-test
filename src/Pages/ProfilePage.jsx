@@ -26,7 +26,7 @@ const ProfilePage = () => {
       } else {
         setLoading(false);
         // Redirect to login after short delay
-        setTimeout(() => navigate("/account"), 2000);
+        // setTimeout(() => navigate("/account"), 2000);
       }
     }, (authError) => {
       setError("Authentication error: " + authError.message);

@@ -5,7 +5,7 @@ import Header from '../components/Navbar';
 import Footer from '../components/Footer';
 import { toast } from 'react-toastify';
 import { useNavigate, useParams } from 'react-router-dom';
-import { CheckCircle, AlertCircle, LogOut, ShoppingBag, Loader } from 'lucide-react';
+import { CheckCircle, AlertCircle, LogOut, ShoppingBag, Loader, Edit } from 'lucide-react';
 
 const SellerProfile = () => {
   const [sellerInfo, setSellerInfo] = useState(null);
@@ -23,7 +23,7 @@ const SellerProfile = () => {
       const currentUser = auth.currentUser;
       const storedAdminEmail = localStorage.getItem('adminEmail');
       if ((currentUser && currentUser.email === "admfouekicker@gmail.com") ||
-          storedAdminEmail === "admfouekicker@gmail.com") {
+        storedAdminEmail === "admfouekicker@gmail.com") {
         setIsAdmin(true);
       }
     };
@@ -31,18 +31,18 @@ const SellerProfile = () => {
   }, []);
 
   useEffect(() => {
-    let unsubscribe = () => {};
-    
+    let unsubscribe = () => { };
+
     const setupSellerProfile = async () => {
       try {
         setLoading(true);
-        
+
         if (!sellerId) {
           toast.error('Seller ID not found');
           navigate('/seller-form');
           return;
         }
-        
+
         const sellerDocRef = doc(db, 'sellers', sellerId);
         // First fetch to initialize
         const sellerDoc = await getDoc(sellerDocRef);
@@ -64,7 +64,7 @@ const SellerProfile = () => {
         } else {
           toast.error('Seller profile not found');
         }
-        
+
         // Set up real-time listener
         unsubscribe = onSnapshot(sellerDocRef, (docSnapshot) => {
           if (docSnapshot.exists()) {
@@ -80,7 +80,7 @@ const SellerProfile = () => {
             setSellerInfo(updatedData);
           }
         });
-        
+
       } catch (error) {
         console.error('Error fetching seller info:', error);
         toast.error('Failed to load seller profile');
@@ -128,15 +128,15 @@ const SellerProfile = () => {
           <h2 className="text-2xl font-bold text-gray-800 mb-2">Profile Not Found</h2>
           <p className="text-gray-600 mb-6">We couldn't find this seller profile.</p>
           {isAdmin ? (
-            <button 
-              onClick={handleBackToAdmin} 
+            <button
+              onClick={handleBackToAdmin}
               className="px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors"
             >
               Back to Admin Dashboard
             </button>
           ) : (
-            <button 
-              onClick={() => navigate('/seller-form')} 
+            <button
+              onClick={() => navigate('/seller-form')}
               className="px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors"
             >
               Go to Registration
@@ -156,7 +156,7 @@ const SellerProfile = () => {
             {/* Admin-specific navigation can be placed here */}
           </div>
         )}
-        
+
         <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-md overflow-hidden">
           {/* Profile Header */}
           <div className="bg-gradient-to-r from-indigo-500 to-purple-600 px-6 py-8 text-white">
@@ -184,13 +184,11 @@ const SellerProfile = () => {
               </div>
             </div>
           </div>
-
-          {/* Verification Status */}
-          <div className={`px-6 py-4 ${
-            sellerInfo.verified === true 
-              ? 'bg-green-50 border-l-4 border-green-500' 
+            {/* Verification Status */}
+          <div className={`px-6 py-4 ${sellerInfo.verified === true
+              ? 'bg-green-50 border-l-4 border-green-500'
               : 'bg-amber-50 border-l-4 border-amber-500'
-          }`}>
+            }`}>
             <div className="flex items-center">
               {sellerInfo.verified === true ? (
                 <>
@@ -286,8 +284,8 @@ const SellerProfile = () => {
                 )}
               </div>
               <p className="text-gray-600">
-                {isAdmin 
-                  ? 'This seller can manage and sell products on the platform.' 
+                {isAdmin
+                  ? 'This seller can manage and sell products on the platform.'
                   : 'You can now manage and sell your products on our platform.'}
               </p>
             </div>
@@ -298,15 +296,15 @@ const SellerProfile = () => {
                 <div>
                   <h3 className="font-medium text-gray-700">Product Management</h3>
                   <p className="text-sm text-gray-500">
-                    {isAdmin 
-                      ? 'This seller will be able to add products once verified.' 
+                    {isAdmin
+                      ? 'This seller will be able to add products once verified.'
                       : 'You\'ll be able to add and manage products once your account is verified.'}
                   </p>
                 </div>
               </div>
             </div>
           )}
-          
+
         </div>
       </main>
       <Footer />

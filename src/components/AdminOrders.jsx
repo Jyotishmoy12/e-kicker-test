@@ -91,6 +91,40 @@ const OrderManagement = () => {
     }
   }, [])
 
+  const renderPaymentStatus = (order) => {
+    let statusColor = "bg-green-500"
+    let statusText = "Paid"
+
+    switch (order.paymentMethod) {
+      case "COD":
+        statusColor = "bg-yellow-500"
+        statusText = "Cash on Delivery"
+        break
+      case "PENDING":
+        statusColor = "bg-red-500"
+        statusText = "Pending Payment"
+        break
+      default:
+        statusColor = "bg-green-500"
+        statusText = "Paid"
+    }
+
+    return (
+      <div className="bg-gray-50 p-4 rounded-lg">
+        <h4 className="font-medium mb-2 flex items-center text-gray-700">
+          <Clock className="w-4 h-4 mr-1 text-indigo-600" /> Payment Status
+        </h4>
+        <div className="flex items-center">
+          <div className={`w-3 h-3 rounded-full ${statusColor} mr-2`}></div>
+          <p className="text-sm font-medium" style={{ color: statusColor.replace('bg-', 'text-') }}>
+            {statusText}
+          </p>
+        </div>
+        <p className="text-sm mt-2">Payment Method: {order.paymentMethod || "N/A"}</p>
+        <p className="text-sm">Payment ID: {order.paymentId || "N/A"}</p>
+      </div>
+    )
+  }
   // Filter orders based on search term and category
   const filteredOrders = useMemo(() => {
     if (!searchTerm.trim()) return orders
@@ -411,6 +445,7 @@ const OrderManagement = () => {
                     ) : (
                       <ChevronRight className="w-5 h-5 text-gray-500" />
                     )}
+                    {renderPaymentStatus(order)}
                   </div>
                 </div>
 
@@ -447,16 +482,7 @@ const OrderManagement = () => {
                       </div>
 
                       {/* Payment Information */}
-                      <div className="bg-gray-50 p-4 rounded-lg">
-                        <h4 className="font-medium mb-2 flex items-center text-gray-700">
-                          <Clock className="w-4 h-4 mr-1 text-indigo-600" /> Payment Status
-                        </h4>
-                        <div className="flex items-center">
-                          <div className="w-3 h-3 rounded-full bg-green-500 mr-2"></div>
-                          <p className="text-sm font-medium text-green-700">Paid</p>
-                        </div>
-                        <p className="text-sm mt-2">Payment ID: {order.paymentId || "N/A"}</p>
-                      </div>
+                     
                     </div>
 
                     {/* Order Items */}

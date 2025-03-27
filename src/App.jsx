@@ -79,7 +79,7 @@ const App = () => {
             <Route path="/service-provider" element={<ServiceProvider />} />
             <Route path="/service-providers-list" element={<ServiceProviderList />} />
             <Route path="/service-provider-profile" element={<ServiceProviderProfile />} />
-
+            
 
             {/* <Route path="/edit-product/:id" component={EditProduct} /> */}
             <Route path="/admin" element={
