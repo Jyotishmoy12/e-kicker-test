@@ -323,7 +323,7 @@ const CheckoutPage = () => {
                             </p>
                           </div>
                         </div>
-                        <p className="font-bold">₹₹{(Number(item.price) * item.quantity).toFixed(2)}
+                        <p className="font-bold">₹{(Number(item.price) * item.quantity).toFixed(2)}
                         </p>
                       </div>
                     ))}
